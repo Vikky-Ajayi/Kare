@@ -139,6 +139,7 @@ const Register = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="brutalist-input w-full pr-16 focus:border-primary transition-colors"
+                  style={{ textTransform: 'none' }}
                 />
                 <button 
                   type="button"
@@ -160,6 +161,7 @@ const Register = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   className="brutalist-input w-full pr-16 focus:border-primary transition-colors"
+                  style={{ textTransform: 'none' }}
                 />
                 <button 
                   type="button"
