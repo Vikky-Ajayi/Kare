@@ -1,4 +1,4 @@
-# 🩺 Voice Medical Assistant — Backend API
+#  Voice Medical Assistant — Backend API
 
 A voice-first, multilingual AI medical assistant for Nigeria and Africa.  
 Built with **FastAPI + Groq + Supabase** — entirely free to run.
