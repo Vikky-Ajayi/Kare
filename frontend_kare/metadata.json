@@ -1,0 +1,5 @@
+{
+  "name": "Kare — AI Medical Assistant",
+  "description": "A voice-first AI medical assistant for Nigeria and Africa, providing 24/7 personalized healthcare support.",
+  "requestFramePermissions": ["microphone", "camera"]
+}
