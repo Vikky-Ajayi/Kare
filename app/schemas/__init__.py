@@ -46,9 +46,22 @@ class UserResponse(BaseModel):
     is_verified: bool
     role: str
     created_at: datetime
+    first_name: str | None = None
+    last_name: str | None = None
+    name: str | None = None
+    has_active_pregnancy: bool = False
+    followups_enabled: bool = False
 
     class Config:
         from_attributes = True
+
+
+class AuthResponse(BaseModel):
+    user: UserResponse
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
 
 
 # ─────────────────────────────────────────────

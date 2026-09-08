@@ -1,239 +1,92 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Edit2, 
-  Camera,
-  Shield,
-  CreditCard,
-  ArrowRight,
-  CheckCircle2,
-  Save,
-  X
-} from 'lucide-react';
+import { Mail, MapPin, Save, Edit2, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import { cn } from '../lib/utils';
-import { api } from '../services/api';
+import { patient as patientApi } from '../services/api';
+import type { PatientProfile } from '../types';
+
+const Row = ({ label, value }: { label: string; value?: string | number | null }) => (
+  <div className="flex items-center gap-6 py-4 border-b-2 border-white/5">
+    <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 w-40 flex-shrink-0">{label}</div>
+    <div className="text-sm text-white/80">{value ?? '—'}</div>
+  </div>
+);
+
+const field = 'w-full bg-black border-2 border-white/10 px-4 py-2.5 text-sm text-white outline-none focus:border-primary';
 
 const Profile = () => {
-  const { user, profile, setProfile } = useAuthStore(state => ({
-    user: state.user,
-    profile: state.profile,
-    setProfile: state.setProfile
-  }));
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<any>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const [p, setP] = useState<PatientProfile | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<Partial<PatientProfile>>({});
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await api.get('/profile');
-        setProfile(response.data);
-        setFormData(response.data);
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      }
-    };
+  useEffect(() => { patientApi.get().then((d) => { setP(d); setForm(d); }).catch(() => {}); }, []);
 
-    if (!profile) {
-      fetchProfile();
-    } else {
-      setFormData(profile);
-    }
-  }, [profile, setProfile]);
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const save = async () => {
+    setSaving(true);
     try {
-      const response = await api.put('/profile', formData);
-      setProfile(response.data);
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const profileInfo = [
-    { icon: Mail, label: 'Email Address', value: user?.email || 'matias@example.com' },
-    { icon: Phone, label: 'Emergency Contact', value: profile?.emergency_contact || 'None' },
-    { icon: MapPin, label: 'Location', value: `${profile?.state || 'Lagos'}, ${profile?.country || 'Nigeria'}` },
-  ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 }
+      const updated = await patientApi.update({
+        date_of_birth: form.date_of_birth, gender: form.gender, phone_number: form.phone_number,
+        state: form.state, blood_group: form.blood_group, height_cm: form.height_cm ? +form.height_cm : undefined,
+        weight_kg: form.weight_kg ? +form.weight_kg : undefined,
+        emergency_contact_name: form.emergency_contact_name, emergency_contact_phone: form.emergency_contact_phone,
+      });
+      setP(updated); setForm(updated); setEditing(false);
+    } finally { setSaving(false); }
   };
 
   return (
-    <motion.div 
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="max-w-4xl mx-auto space-y-12 p-8 pb-32"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto space-y-8 p-6 md:p-8 pb-24">
       <div className="flex justify-between items-end">
-        <motion.div variants={itemVariants}>
-          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">User Account</div>
-          <h1 className="text-5xl font-display font-bold tracking-tighter uppercase">My Profile<span className="text-primary">.</span></h1>
-          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">Manage your personal information and preferences.</p>
-        </motion.div>
-        <motion.button 
-          variants={itemVariants}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => isEditing ? handleUpdateProfile({ preventDefault: () => {} } as any) : setIsEditing(true)}
-          disabled={isLoading}
-          className="px-10 py-5 bg-primary text-black font-bold uppercase tracking-[0.2em] flex items-center gap-4 hover:bg-white transition-all border-4 border-black shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] group disabled:opacity-50"
-        >
-          {isEditing ? (
-            <>
-              <Save size={24} className="group-hover:scale-110 transition-transform" /> 
-              {isLoading ? 'Saving...' : 'Save Profile'}
-            </>
-          ) : (
-            <>
-              <Edit2 size={24} className="group-hover:rotate-12 transition-transform" /> Edit Profile
-            </>
-          )}
-        </motion.button>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">Account</div>
+          <h1 className="text-4xl font-display font-bold tracking-tighter uppercase">{p?.first_name || 'Profile'}<span className="text-primary">.</span></h1>
+        </div>
+        <button onClick={() => (editing ? save() : setEditing(true))} disabled={saving}
+          className="btn-primary flex items-center gap-2 disabled:opacity-50">
+          {saving ? <Loader2 size={16} className="animate-spin" /> : editing ? <Save size={16} /> : <Edit2 size={16} />}
+          {editing ? 'Save' : 'Edit'}
+        </button>
       </div>
 
-      <div className="grid md:grid-cols-12 gap-8">
-        <div className="md:col-span-4 space-y-8">
-          <motion.div 
-            variants={itemVariants}
-            className="brutalist-card p-12 flex flex-col items-center text-center bg-surface border-2 border-white/10"
-          >
-            {isEditing && (
-              <button 
-                onClick={() => setIsEditing(false)}
-                className="absolute top-4 right-4 text-white/20 hover:text-red-500 transition-colors"
-              >
-                <X size={24} />
-              </button>
-            )}
-            <div className="relative mb-10">
-              <motion.div 
-                whileHover={{ scale: 1.05 }}
-                className="w-48 h-48 border-4 border-white overflow-hidden bg-black shadow-[12px_12px_0px_0px_rgba(0,0,0,0.3)]"
-              >
-                <img 
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Matias'}`} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
-                />
-              </motion.div>
-              <motion.button 
-                whileHover={{ scale: 1.1, rotate: 15 }}
-                whileTap={{ scale: 0.9 }}
-                className="absolute -bottom-6 -right-6 w-14 h-14 bg-primary text-black border-4 border-black flex items-center justify-center hover:bg-white transition-colors"
-              >
-                <Camera size={24} />
-              </motion.button>
+      <div className="brutalist-card bg-surface border-2 border-white/10 p-8">
+        <Row label="Email" value={user?.email} />
+        {!editing ? (
+          <>
+            <Row label="Date of birth" value={p?.date_of_birth} />
+            <Row label="Age" value={p?.age} />
+            <Row label="Sex" value={p?.gender} />
+            <Row label="Phone" value={p?.phone_number} />
+            <Row label="State" value={p?.state} />
+            <Row label="Blood group" value={p?.blood_group} />
+            <Row label="Height / Weight" value={p?.height_cm ? `${p.height_cm} cm / ${p.weight_kg ?? '—'} kg` : '—'} />
+            <Row label="BMI" value={p?.bmi} />
+            <Row label="Emergency contact" value={p?.emergency_contact_name ? `${p.emergency_contact_name} · ${p.emergency_contact_phone ?? ''}` : '—'} />
+            <Row label="Allergies" value={p?.allergies?.join(', ') || 'none reported'} />
+          </>
+        ) : (
+          <div className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <label className="space-y-1"><span className="text-[10px] font-bold uppercase tracking-widest text-white/30">Date of birth</span>
+                <input type="date" value={form.date_of_birth || ''} onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })} className={field} /></label>
+              <label className="space-y-1"><span className="text-[10px] font-bold uppercase tracking-widest text-white/30">Sex</span>
+                <select value={form.gender || ''} onChange={(e) => setForm({ ...form, gender: e.target.value })} className={field}>
+                  <option value="">—</option><option value="female">Female</option><option value="male">Male</option><option value="other">Other</option>
+                </select></label>
+              <label className="space-y-1"><span className="text-[10px] font-bold uppercase tracking-widest text-white/30">Phone</span>
+                <input value={form.phone_number || ''} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} className={field} style={{ textTransform: 'none' }} /></label>
+              <label className="space-y-1"><span className="text-[10px] font-bold uppercase tracking-widest text-white/30">State</span>
+                <input value={form.state || ''} onChange={(e) => setForm({ ...form, state: e.target.value })} className={field} style={{ textTransform: 'none' }} /></label>
+              <label className="space-y-1"><span className="text-[10px] font-bold uppercase tracking-widest text-white/30">Height (cm)</span>
+                <input type="number" value={form.height_cm || ''} onChange={(e) => setForm({ ...form, height_cm: +e.target.value })} className={field} /></label>
+              <label className="space-y-1"><span className="text-[10px] font-bold uppercase tracking-widest text-white/30">Weight (kg)</span>
+                <input type="number" value={form.weight_kg || ''} onChange={(e) => setForm({ ...form, weight_kg: +e.target.value })} className={field} /></label>
+              <label className="space-y-1"><span className="text-[10px] font-bold uppercase tracking-widest text-white/30">Blood group</span>
+                <input value={form.blood_group || ''} onChange={(e) => setForm({ ...form, blood_group: e.target.value })} className={field} style={{ textTransform: 'none' }} /></label>
             </div>
-            <h2 className="text-4xl font-display font-bold uppercase tracking-tighter mb-3">{user?.name || 'Matias'}</h2>
-            <p className="text-white/20 text-[10px] font-bold uppercase tracking-[0.4em]">ID: #KARE-98234</p>
-            <div className="mt-10 flex gap-4">
-              <span className="px-6 py-2 border-2 border-primary text-primary text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-                <CheckCircle2 size={12} /> Verified
-              </span>
-              <span className="px-6 py-2 bg-primary text-black text-[10px] font-bold uppercase tracking-[0.2em]">Premium</span>
-            </div>
-          </motion.div>
-
-          <motion.div 
-            variants={itemVariants}
-            className="brutalist-card p-10 space-y-8 bg-surface border-2 border-white/10"
-          >
-            <h3 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">Health Overview</h3>
-            <div className="space-y-6">
-              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] group cursor-pointer">
-                <span className="text-white/20 group-hover:text-white transition-colors">Blood Type</span>
-                <span className="text-primary">O+ Positive</span>
-              </div>
-              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] group cursor-pointer">
-                <span className="text-white/20 group-hover:text-white transition-colors">Height</span>
-                <span className="text-white">178 cm</span>
-              </div>
-              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] group cursor-pointer">
-                <span className="text-white/20 group-hover:text-white transition-colors">Weight</span>
-                <span className="text-white">72 kg</span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="md:col-span-8 space-y-8">
-          <motion.div 
-            variants={itemVariants}
-            className="brutalist-card p-12 bg-surface border-2 border-white/10"
-          >
-            <h3 className="text-2xl font-display font-bold uppercase tracking-tight mb-12">Personal Information</h3>
-            <div className="grid gap-12">
-              {profileInfo.map((info) => (
-                <motion.div 
-                  key={info.label} 
-                  whileHover={{ x: 10 }}
-                  className="flex items-center gap-10 group cursor-pointer"
-                >
-                  <div className="w-20 h-20 bg-black border-2 border-white/10 flex items-center justify-center text-white/10 group-hover:text-primary group-hover:border-primary group-hover:bg-primary/10 transition-all">
-                    <info.icon size={32} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-white/20 font-bold uppercase tracking-[0.3em] mb-3">{info.label}</p>
-                    <p className="text-xl font-bold uppercase tracking-[0.2em] text-white group-hover:text-primary transition-all">{info.value}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <motion.div 
-              variants={itemVariants}
-              whileHover={{ y: -5 }}
-              className="brutalist-card p-10 flex items-center gap-8 bg-surface border-2 border-white/10 hover:bg-black hover:border-primary transition-all cursor-pointer group"
-            >
-              <div className="w-20 h-20 bg-black border-2 border-white/10 flex items-center justify-center text-white/10 group-hover:text-primary group-hover:border-primary transition-all">
-                <Shield size={36} />
-              </div>
-              <div>
-                <h4 className="text-xl font-display font-bold uppercase tracking-tight group-hover:text-primary transition-all">Security</h4>
-                <p className="text-[10px] text-white/20 font-bold uppercase tracking-[0.3em]">Password & 2FA</p>
-              </div>
-            </motion.div>
-            <motion.div 
-              variants={itemVariants}
-              whileHover={{ y: -5 }}
-              className="brutalist-card p-10 flex items-center gap-8 bg-surface border-2 border-white/10 hover:bg-black hover:border-primary transition-all cursor-pointer group"
-            >
-              <div className="w-20 h-20 bg-black border-2 border-white/10 flex items-center justify-center text-white/10 group-hover:text-primary group-hover:border-primary transition-all">
-                <CreditCard size={36} />
-              </div>
-              <div>
-                <h4 className="text-xl font-display font-bold uppercase tracking-tight group-hover:text-primary transition-all">Billing</h4>
-                <p className="text-[10px] text-white/20 font-bold uppercase tracking-[0.3em]">Manage Subscription</p>
-              </div>
-            </motion.div>
           </div>
-        </div>
+        )}
       </div>
     </motion.div>
   );

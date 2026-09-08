@@ -1,40 +1,54 @@
 import { create } from 'zustand';
-import { User, PatientProfile } from '../types';
+import type { User } from '../types';
+
+const LS = {
+  access: 'kare_access_token',
+  refresh: 'kare_refresh_token',
+  user: 'kare_user',
+};
 
 interface AuthState {
   user: User | null;
-  profile: PatientProfile | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
-  setProfile: (profile: PatientProfile) => void;
+  setUser: (user: User) => void;
   logout: () => void;
 }
 
+function readUser(): User | null {
+  try {
+    return JSON.parse(localStorage.getItem(LS.user) || 'null');
+  } catch {
+    return null;
+  }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: JSON.parse(localStorage.getItem('kare_user') || 'null'),
-  profile: null,
-  accessToken: localStorage.getItem('kare_access_token'),
-  refreshToken: localStorage.getItem('kare_refresh_token'),
-  isAuthenticated: !!localStorage.getItem('kare_access_token'),
+  user: readUser(),
+  accessToken: localStorage.getItem(LS.access),
+  refreshToken: localStorage.getItem(LS.refresh),
+  isAuthenticated: !!localStorage.getItem(LS.access),
+
   setAuth: (user, accessToken, refreshToken) => {
-    localStorage.setItem('kare_access_token', accessToken);
-    localStorage.setItem('kare_refresh_token', refreshToken);
-    localStorage.setItem('kare_user', JSON.stringify(user));
+    localStorage.setItem(LS.access, accessToken);
+    localStorage.setItem(LS.refresh, refreshToken);
+    localStorage.setItem(LS.user, JSON.stringify(user));
     set({ user, accessToken, refreshToken, isAuthenticated: true });
   },
   setTokens: (accessToken, refreshToken) => {
-    localStorage.setItem('kare_access_token', accessToken);
-    localStorage.setItem('kare_refresh_token', refreshToken);
+    localStorage.setItem(LS.access, accessToken);
+    localStorage.setItem(LS.refresh, refreshToken);
     set({ accessToken, refreshToken });
   },
-  setProfile: (profile) => set({ profile }),
+  setUser: (user) => {
+    localStorage.setItem(LS.user, JSON.stringify(user));
+    set({ user });
+  },
   logout: () => {
-    localStorage.removeItem('kare_access_token');
-    localStorage.removeItem('kare_refresh_token');
-    localStorage.removeItem('kare_user');
-    set({ user: null, profile: null, accessToken: null, refreshToken: null, isAuthenticated: false });
+    Object.values(LS).forEach((k) => localStorage.removeItem(k));
+    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
   },
 }));
