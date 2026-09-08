@@ -91,3 +91,30 @@ async def update_language(
     current_user.preferred_language = language
     db.commit()
     return {"message": "Language updated.", "language": language}
+
+
+@router.delete("/me")
+async def delete_my_account(
+    confirm: str = "",
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Permanently delete this account and everything linked to it — profile,
+    conditions, medications, conversations, symptom checks, health notes.
+    Requires ?confirm=DELETE. Irreversible.
+    """
+    if confirm != "DELETE":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Add ?confirm=DELETE to permanently delete your account and all data.",
+        )
+    from app.models import AuditLog
+
+    db.add(AuditLog(user_id=current_user.id, action="account_deleted",
+                    resource_type="user", resource_id=current_user.id))
+    db.commit()
+    # audit_logs.user_id is ON DELETE SET NULL, so the record survives the user
+    db.delete(current_user)   # cascades to patient, conversations, etc.
+    db.commit()
+    return {"message": "Your account and all associated data have been deleted."}

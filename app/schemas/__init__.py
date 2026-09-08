@@ -230,6 +230,8 @@ class VoiceChatResponse(BaseModel):
     language: str
     audio_base64: str | None = None    # base64-encoded WAV
     triage_level: str | None = None
+    escalated: bool = False
+    tool_calls: list[str] = []
     disclaimer: str
 
 

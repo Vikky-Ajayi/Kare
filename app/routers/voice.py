@@ -112,6 +112,8 @@ async def voice_chat(
         language=turn.language,
         audio_base64=audio_b64,
         triage_level=turn.triage_level,
+        escalated=turn.escalated,
+        tool_calls=turn.tool_calls,
         disclaimer=get_disclaimer(turn.language),
     )
 
@@ -165,6 +167,9 @@ async def voice_chat_audio(
         "assistant_message": turn.reply_text,
         "audio_base64": audio_b64,
         "latency_ms": turn.latency_ms,
+        "triage_level": turn.triage_level,
+        "escalated": turn.escalated,
+        "tool_calls": turn.tool_calls,
         "disclaimer": get_disclaimer(turn.language),
     }
 
@@ -267,6 +272,8 @@ async def voice_stream(ws: WebSocket):
             await ws.send_json({
                 "type": "reply", "text": turn.reply_text,
                 "conversation_id": conversation_id, "latency_ms": turn.latency_ms,
+                "escalated": turn.escalated, "triage_level": turn.triage_level,
+                "tool_calls": turn.tool_calls,
             })
 
             seq = 0

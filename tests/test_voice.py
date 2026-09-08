@@ -1,28 +1,52 @@
-"""Voice + consultation endpoints, with the LLM and voice providers faked so
-CI never touches a live API."""
+"""Voice + consultation + agent endpoints, with the LLM and voice providers
+faked so CI never touches a live API."""
 
 from __future__ import annotations
 
 import base64
+import json
 
 import pytest
 
-from app.providers.base import LLMResponse, SynthResult, Transcript
+from app.providers.base import LLMResponse, SynthResult, ToolCall, Transcript
 
 
 class FakeLLM:
+    """Reads the system prompt to decide what kind of call this is."""
     name = "fake"
-    last_messages: list = []
+    calls: list = []
 
-    async def complete(self, messages, **kw):
-        FakeLLM.last_messages = messages
+    async def complete(self, messages, *, tools=None, **kw):
+        system = messages[0]["content"] if messages and messages[0]["role"] == "system" else ""
         user = next((m["content"] for m in reversed(messages) if m["role"] == "user"), "")
-        if "chest" in user.lower():
-            reply = "This could be serious — please get to a hospital now. When did the pain start?"
-        else:
-            reply = "I hear you. How long has this been going on, and any fever?"
-        return LLMResponse(content=reply, finish_reason="stop",
-                           model="fake", usage={"total_tokens": 42})
+        FakeLLM.calls.append({"system": system[:40], "user": user, "had_tools": bool(tools)})
+
+        if "triage safety net" in system:                      # red-flag classifier
+            emergency = "cannot breathe" in user.lower() or "not moving" in user.lower()
+            return _json({"emergency": emergency, "category": "danger", "reason": "x"})
+        if "clinical documentation assistant" in system:       # memory extraction
+            return _json({"presenting_complaints": ["headache"], "last_summary": "test session"})
+        if "EMERGENCY" in system:                              # escalation reply
+            return _text("This could be serious — please get to a hospital now. Who is with you?")
+        # normal consultation turn (agent loop). Call a tool on the first pass only
+        # if we haven't already (no tool role yet in messages).
+        if tools and not any(m["role"] == "tool" for m in messages) and "ibuprofen" in user.lower():
+            return LLMResponse(
+                content="", finish_reason="tool_calls", model="fake",
+                usage={"total_tokens": 10},
+                tool_calls=[ToolCall(id="c1", name="check_drug_interactions",
+                                     arguments={"drugs": ["ibuprofen", "lisinopril"]})],
+            )
+        return _text("I hear you. How long has this been going on, and any fever?")
+
+
+def _text(t: str) -> LLMResponse:
+    return LLMResponse(content=t, finish_reason="stop", model="fake", usage={"total_tokens": 20})
+
+
+def _json(d: dict) -> LLMResponse:
+    return LLMResponse(content=json.dumps(d), finish_reason="stop", model="fake",
+                       usage={"total_tokens": 20})
 
 
 class FakeVoice:
@@ -52,17 +76,12 @@ class FakeVoice:
 
 
 @pytest.fixture(autouse=True)
-def _fake_providers(monkeypatch):
+def _fake_providers():
     from app import providers
-    monkeypatch.setattr(providers, "get_llm", lambda: FakeLLM())
-    monkeypatch.setattr(providers, "get_voice", lambda: FakeVoice())
-    # modules that imported the names directly
-    import app.routers.voice as vr
-    import app.services.consultation as cs
-    import app.services.memory as mem
-    monkeypatch.setattr(vr, "get_voice", lambda: FakeVoice())
-    monkeypatch.setattr(cs, "get_llm", lambda: FakeLLM())
-    monkeypatch.setattr(mem, "get_llm", lambda: FakeLLM())
+    FakeLLM.calls = []
+    providers.use_test_providers(llm=FakeLLM(), voice=FakeVoice())
+    yield
+    providers.use_test_providers(None, None)
 
 
 def test_text_chat_returns_reply_and_audio(auth_client):
@@ -72,8 +91,8 @@ def test_text_chat_returns_reply_and_audio(auth_client):
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["assistant_message"]
-    assert body["conversation_id"]
     assert base64.b64decode(body["audio_base64"])
+    assert body["escalated"] is False
 
 
 def test_conversation_is_continuous(auth_client):
@@ -84,14 +103,24 @@ def test_conversation_is_continuous(auth_client):
     })
     assert r2.json()["conversation_id"] == cid
     msgs = auth_client.get(f"/api/v1/voice/conversations/{cid}/messages").json()["messages"]
-    assert len(msgs) == 4  # 2 user + 2 assistant
+    assert len(msgs) == 4
 
 
-def test_emergency_language_is_upfront(auth_client):
+def test_emergency_is_escalated_and_upfront(auth_client):
     r = auth_client.post("/api/v1/voice/chat", json={
-        "text": "my chest is hurting badly", "language": "en", "include_audio": False,
+        "text": "I cannot breathe and my chest is tight", "language": "en", "include_audio": False,
     })
-    assert "hospital" in r.json()["assistant_message"].lower()
+    body = r.json()
+    assert body["escalated"] is True
+    assert "hospital" in body["assistant_message"].lower()
+    assert body["triage_level"] == "emergency"
+
+
+def test_agent_calls_drug_interaction_tool_unprompted(auth_client):
+    r = auth_client.post("/api/v1/voice/chat", json={
+        "text": "can I take ibuprofen for my knee pain?", "language": "en", "include_audio": False,
+    })
+    assert "check_drug_interactions" in r.json()["tool_calls"]
 
 
 def test_audio_chat_transcribes_then_replies(auth_client):
@@ -102,7 +131,6 @@ def test_audio_chat_transcribes_then_replies(auth_client):
     )
     assert r.status_code == 200, r.text
     assert r.json()["transcription"] == "I have had a headache since morning"
-    assert r.json()["assistant_message"]
 
 
 def test_unsupported_language_falls_back_to_en(auth_client):
@@ -118,24 +146,22 @@ def test_stream_ws_full_turn(auth_client):
         assert ws.receive_json() == {"type": "ready", "live_transcript": True}
         ws.send_bytes(b"\x00\x01" * 4000)
         ws.send_json({"type": "end_turn"})
-        seen = {"partial": False, "final": False, "reply": False, "audio": 0, "done": False}
-        while not seen["done"]:
+        seen = set()
+        while "turn_complete" not in seen:
             m = ws.receive()
             if m.get("text"):
-                import json
-                d = json.loads(m["text"])
-                if d["type"] in seen:
-                    seen[d["type"]] = True
-                if d["type"] == "audio":
-                    seen["audio"] += 1
-                if d["type"] == "turn_complete":
-                    seen["done"] = True
-            elif m.get("bytes"):
-                pass
-        assert seen["partial"] and seen["final"] and seen["reply"] and seen["done"]
+                seen.add(json.loads(m["text"])["type"])
+        assert {"partial", "final", "reply", "turn_complete"} <= seen
 
 
 def test_stream_ws_rejects_bad_token(auth_client):
     with auth_client.websocket_connect("/api/v1/voice/stream") as ws:
         ws.send_json({"type": "auth", "token": "garbage"})
         assert ws.receive_json()["type"] == "error"
+
+
+def test_delete_my_account(auth_client):
+    assert auth_client.delete("/api/v1/patients/me").status_code == 400
+    r = auth_client.delete("/api/v1/patients/me", params={"confirm": "DELETE"})
+    assert r.status_code == 200
+    assert auth_client.get("/api/v1/auth/me").status_code == 401

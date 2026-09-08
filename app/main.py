@@ -36,6 +36,8 @@ logging.basicConfig(
     level=logging.DEBUG if settings.DEBUG else logging.INFO,
     format="%(asctime)s %(levelname)-7s %(name)s | %(message)s",
 )
+for noisy in ("httpx", "httpcore", "groq", "openai", "websockets", "urllib3", "asyncio"):
+    logging.getLogger(noisy).setLevel(logging.WARNING)
 log = logging.getLogger("kare")
 
 

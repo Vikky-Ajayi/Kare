@@ -43,7 +43,7 @@ def _groq() -> AsyncGroq:
     except RuntimeError:
         loop = None
     if _client is None or _client_loop is not loop or (loop is not None and loop.is_closed()):
-        _client = AsyncGroq(api_key=settings.GROQ_API_KEY, max_retries=0)
+        _client = AsyncGroq(api_key=settings.GROQ_API_KEY, max_retries=0, timeout=45.0)
         _client_loop = loop
     return _client
 
@@ -91,8 +91,12 @@ class GroqLLM(LLMProvider):
             resp = await _groq().chat.completions.create(**kwargs)
         except Exception as exc:  # noqa: BLE001
             status = getattr(exc, "status_code", None)
-            if status in (408, 409, 429, 500, 502, 503, 504):
-                log.warning("Groq transient error %s, retrying: %s", status, exc)
+            name = type(exc).__name__
+            transient = status in (408, 409, 429, 500, 502, 503, 504) or name in (
+                "APITimeoutError", "APIConnectionError", "InternalServerError",
+            )
+            if transient:
+                log.warning("Groq transient error (%s), retrying: %s", status or name, exc)
                 raise _Retryable(str(exc)) from exc
             raise
 

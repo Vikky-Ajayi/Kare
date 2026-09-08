@@ -230,10 +230,12 @@ class Conversation(Base):
     user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     language = Column(String(10), default="en")
     status = Column(String(20), default="active")
+    stage = Column(String(20), default="intake")   # intake|gathering|assessment|plan|closed
     started_at = Column(DateTime, default=datetime.utcnow)
     ended_at = Column(DateTime, nullable=True)
     summary = Column(Text, nullable=True)
     triage_result = Column(String(20), nullable=True)
+    followup_plan = Column(JSONType, nullable=True)   # {due_at, topics:[...]} — read by the P3 scheduler
     user = relationship("User", back_populates="conversations")
     messages = relationship("ConversationMessage", back_populates="conversation", cascade="all, delete-orphan")
 
