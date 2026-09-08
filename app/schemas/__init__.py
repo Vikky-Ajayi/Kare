@@ -305,6 +305,30 @@ class ImageAnalysisResponse(BaseModel):
 
 
 # ─────────────────────────────────────────────
+# NOTIFICATIONS / FOLLOW-UP
+# ─────────────────────────────────────────────
+
+class PushKeys(BaseModel):
+    p256dh: str
+    auth: str
+
+
+class PushSubscribeRequest(BaseModel):
+    endpoint: str
+    keys: PushKeys
+    timezone: str | None = None
+
+
+class PushUnsubscribeRequest(BaseModel):
+    endpoint: str
+
+
+class FollowupPreferences(BaseModel):
+    followups_enabled: bool
+    timezone: str | None = None
+
+
+# ─────────────────────────────────────────────
 # GENERIC RESPONSE
 # ─────────────────────────────────────────────
 

@@ -27,6 +27,7 @@ from app.routers import (
     image_analysis,
     medical_history,
     medications,
+    notifications,
     patients,
     symptoms,
     voice,
@@ -61,8 +62,21 @@ async def lifespan(app: FastAPI):
     except Exception as exc:  # noqa: BLE001
         log.error("DB not reachable at startup: %s", exc)
 
+    scheduler = None
+    if settings.INPROCESS_SCHEDULER:
+        from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+        from app.worker.followup_tick import run_once
+        scheduler = AsyncIOScheduler()
+        scheduler.add_job(run_once, "interval", minutes=settings.INPROCESS_SCHEDULER_MINUTES,
+                          id="followup_tick", max_instances=1, coalesce=True)
+        scheduler.start()
+        log.info("in-process follow-up scheduler started (every %dm)", settings.INPROCESS_SCHEDULER_MINUTES)
+
     log.info("%s v%s starting (debug=%s)", settings.APP_NAME, settings.APP_VERSION, settings.DEBUG)
     yield
+    if scheduler:
+        scheduler.shutdown(wait=False)
     log.info("Shutting down.")
 
 
@@ -103,7 +117,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 API_PREFIX = "/api/v1"
 for r in (auth, patients, medical_history, medications,
-          voice, symptoms, drug_interactions, image_analysis):
+          voice, symptoms, drug_interactions, image_analysis, notifications):
     app.include_router(r.router, prefix=API_PREFIX)
 
 

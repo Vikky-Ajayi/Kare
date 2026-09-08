@@ -28,8 +28,11 @@ websockets>=13,<15
 groq>=0.13,<1
 tenacity>=9,<10
 
-# ── Web Push (proactive follow-up notifications) ────────────────────────
+# ── Web Push + proactive follow-up ─────────────────────────────────────
 pywebpush>=2,<3
+python-dateutil>=2.9,<3
+tzdata>=2024.1        # zoneinfo data (containers ship without the OS tz db)
+APScheduler>=3.10,<4  # in-process scheduler for local dev; prod uses Railway cron
 
 # ── Misc ────────────────────────────────────────────────────────────────
 aiofiles>=24,<25

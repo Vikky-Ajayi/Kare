@@ -1,0 +1,18 @@
+{
+  "name": "Kare — AI Health Companion",
+  "short_name": "Kare",
+  "description": "A voice-first health companion for Nigeria and West Africa that speaks how you speak, remembers your history, and checks in on you.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0C1310",
+  "theme_color": "#0C8F80",
+  "categories": ["health", "medical", "lifestyle"],
+  "lang": "en-NG",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

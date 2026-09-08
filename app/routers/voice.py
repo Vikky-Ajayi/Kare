@@ -459,8 +459,29 @@ async def end_conversation(
     if not conv:
         raise HTTPException(404, "Conversation not found.")
     conv.status = "completed"
+    conv.stage = "closed"
     conv.ended_at = datetime.utcnow()
     db.commit()
+
     if user.patient:
-        bg.add_task(_extract_notes_sync, conversation_id, str(user.patient.id), force=True)
+        bg.add_task(_close_out_sync, conversation_id, str(user.patient.id))
     return {"message": "Conversation ended.", "conversation_id": conversation_id}
+
+
+def _close_out_sync(conversation_id: str, patient_id: str) -> None:
+    """Background: final memory update + decide on a proactive check-in."""
+    async def _run() -> None:
+        db = SessionLocal()
+        try:
+            await memory.update_health_notes(db, conversation_id, patient_id)
+            conv = db.query(Conversation).filter(Conversation.id == conversation_id).first()
+            if conv:
+                from app.services import followups
+                await followups.decide_and_plan(db, conv)
+                db.commit()
+        except Exception as exc:  # noqa: BLE001
+            log.warning("close-out failed: %s", exc)
+        finally:
+            db.close()
+
+    asyncio.run(_run())

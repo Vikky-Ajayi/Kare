@@ -48,10 +48,17 @@ class Settings(BaseSettings):
     SAHARA_TTS_STREAM_URL: str = "wss://infer.voice.intron.io/tts/v1/stream"
     SAHARA_STT_CATEGORY: str = "file_category_telehealth"
 
-    # ── Web Push (proactive follow-up) ─────────────────────────────────────
+    # ── Web Push + proactive follow-up ────────────────────────────────────
     VAPID_PUBLIC_KEY: str = ""
     VAPID_PRIVATE_KEY: str = ""
     VAPID_SUBJECT: str = "mailto:admin@kare.health"
+    PUBLIC_APP_URL: str = "http://localhost:3000"   # base for notification deep links
+    FOLLOWUP_QUIET_START: int = 8    # local hour — no check-ins before this
+    FOLLOWUP_QUIET_END: int = 20     # local hour — no check-ins after this
+    FOLLOWUP_MIN_GAP_HOURS: int = 20  # min hours between two proactive pushes to one patient
+    FOLLOWUP_MAX_ATTEMPTS: int = 2   # stop after this many unanswered check-ins on a thread
+    INPROCESS_SCHEDULER: bool = False  # local dev: run the follow-up tick in-app (prod: Railway cron)
+    INPROCESS_SCHEDULER_MINUTES: int = 15
 
     # ── Optional / benchmark ──────────────────────────────────────────────
     HF_TOKEN: str = ""

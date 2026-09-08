@@ -59,9 +59,11 @@ HOW YOU WORK
 
 _STAGE_HINT = {
     "intake": "This is the start — greet warmly, acknowledge the complaint, begin gathering.",
-    "gathering": "Keep gathering the history you still need before any assessment.",
-    "assessment": "You have enough to give a considered assessment with a likely cause or two.",
-    "plan": "Give clear next steps and a plan; plan a follow-up if anything is unresolved.",
+    "gathering": "Keep gathering the history you still need. If you now have enough, score the triage.",
+    "assessment": "You have enough to give a considered assessment with a likely cause or two, then score_triage if you haven't.",
+    "plan": "Give clear next steps. Call plan_followup now with the unresolved symptoms, any "
+            "medication course, and side effects to check on — pick a sensible time (next "
+            "morning for routine, 6-12h if you're a bit concerned).",
 }
 
 ESCALATION_SYSTEM = """You are the AI doctor inside Kare. The patient has just described a
@@ -114,15 +116,25 @@ def _history(db: Session, conversation_id: str) -> list[dict]:
     return [{"role": m.role, "content": m.content} for m in rows[-_HISTORY_TURNS:]]
 
 
+_STAGES = ["intake", "gathering", "assessment", "plan", "closed"]
+
+
 def _advance_stage(conv: Conversation, n_messages: int, tools_used: list[str]) -> None:
+    if n_messages <= 2:
+        base = "intake"
+    elif n_messages <= 5:
+        base = "gathering"
+    elif n_messages <= 8:
+        base = "assessment"
+    else:
+        base = "plan"
     if "flag_for_escalation" in tools_used or "plan_followup" in tools_used:
-        conv.stage = "plan"
-    elif "score_triage" in tools_used:
-        conv.stage = "assessment"
-    elif n_messages <= 2:
-        conv.stage = "intake"
-    elif conv.stage in (None, "intake"):
-        conv.stage = "gathering"
+        base = "plan"
+    elif "score_triage" in tools_used and base in ("intake", "gathering"):
+        base = "assessment"
+    current = conv.stage if conv.stage in _STAGES else "intake"
+    if _STAGES.index(base) >= _STAGES.index(current):
+        conv.stage = base
 
 
 def _system_prompt(patient, stage: str) -> str:
@@ -228,6 +240,12 @@ async def run_turn(
 
     db.add(ConversationMessage(conversation_id=conv.id, role="user", content=text, language=language))
     db.add(ConversationMessage(conversation_id=conv.id, role="assistant", content=reply, language=language))
+
+    # this message answers any check-in we had sent on this thread
+    from app.services import followups
+    followups.mark_answered_if_pending(db, conv.id)
+    if "plan_followup" in tools_used:
+        followups.promote_from_conversation(db, conv)
     db.commit()
 
     log.info("turn conv=%s lang=%s stage=%s %dms tools=%s escalated=%s",

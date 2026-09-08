@@ -95,6 +95,7 @@ class User(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="user")
+    push_subscriptions = relationship("PushSubscription", back_populates="user", cascade="all, delete-orphan")
 
 
 class RefreshToken(Base):
@@ -130,6 +131,8 @@ class Patient(Base):
     emergency_contact_name = Column(String(200), nullable=True)
     emergency_contact_phone = Column(String(20), nullable=True)
     profile_photo_url = Column(String(500), nullable=True)
+    timezone = Column(String(64), default="Africa/Lagos")   # for quiet-hours on check-ins
+    followups_enabled = Column(Boolean, default=False)      # opt-in to proactive check-ins
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -139,6 +142,7 @@ class Patient(Base):
     symptom_checks = relationship("SymptomCheck", back_populates="patient", cascade="all, delete-orphan")
     image_analyses = relationship("ImageAnalysis", back_populates="patient", cascade="all, delete-orphan")
     health_notes = relationship("PatientHealthNotes", back_populates="patient", uselist=False, cascade="all, delete-orphan")
+    followups = relationship("ScheduledFollowUp", back_populates="patient", cascade="all, delete-orphan")
 
 
 # ─────────────────────────────────────────────
@@ -305,3 +309,50 @@ class AuditLog(Base):
     user_agent = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     user = relationship("User", back_populates="audit_logs")
+
+
+# ─────────────────────────────────────────────
+# PROACTIVE FOLLOW-UP
+# ─────────────────────────────────────────────
+
+class PushSubscription(Base):
+    """A browser Web Push endpoint for one of the user's devices."""
+    __tablename__ = "push_subscriptions"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    endpoint = Column(Text, unique=True, nullable=False)
+    p256dh = Column(Text, nullable=False)
+    auth = Column(Text, nullable=False)
+    user_agent = Column(String(400), nullable=True)
+    timezone = Column(String(64), nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_used_at = Column(DateTime, nullable=True)
+
+    user = relationship("User", back_populates="push_subscriptions")
+
+
+class ScheduledFollowUp(Base):
+    """
+    One proactive check-in. Created from a conversation's followup_plan, picked
+    up by the worker when due, composed into a natural message, written into the
+    conversation as an assistant turn, and pushed.
+    """
+    __tablename__ = "scheduled_followups"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    patient_id = Column(String(36), ForeignKey("patients.id", ondelete="CASCADE"), nullable=False)
+    conversation_id = Column(String(36), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
+    due_at = Column(DateTime, nullable=False, index=True)
+    language = Column(String(10), default="en")
+    topics = Column(JSONType, default=list)               # [{topic, why, ask}]
+    status = Column(String(20), default="pending", index=True)  # pending|sent|answered|cancelled|failed
+    generated_message = Column(Text, nullable=True)
+    reason = Column(String(200), nullable=True)           # why cancelled / skipped
+    attempt = Column(Integer, default=0)                  # how many check-ins already sent on this thread
+    created_at = Column(DateTime, default=datetime.utcnow)
+    sent_at = Column(DateTime, nullable=True)
+    clicked_at = Column(DateTime, nullable=True)
+    answered_at = Column(DateTime, nullable=True)
+
+    patient = relationship("Patient", back_populates="followups")
+    conversation = relationship("Conversation")
