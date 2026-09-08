@@ -22,18 +22,21 @@ const Dashboard = () => {
 
   const first = user?.first_name || profile?.first_name || 'there';
 
-  const item = { hidden: { y: 16, opacity: 0 }, visible: { y: 0, opacity: 1 } };
+  const item = {
+    initial: { y: 12, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+  };
 
   return (
-    <motion.div initial="hidden" animate="visible" transition={{ staggerChildren: 0.06 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
       className="space-y-8 p-6 md:p-8 pb-24">
-      <motion.div variants={item}>
+      <motion.div {...item}>
         <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">Dashboard</div>
         <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tighter uppercase">Hello, {first}<span className="text-primary">.</span></h1>
       </motion.div>
 
       {followups.length > 0 && (
-        <motion.div variants={item}>
+        <motion.div {...item}>
           <Link to={`/dashboard/voice?c=${followups[0].conversation_id}&f=${followups[0].id}`}
             className="block brutalist-card bg-primary text-black border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] hover:-translate-y-1 transition-transform">
             <div className="flex items-center gap-3 mb-2"><Bell size={16} /><span className="text-[10px] font-bold uppercase tracking-[0.3em]">Kare checked in on you</span></div>
@@ -43,7 +46,7 @@ const Dashboard = () => {
         </motion.div>
       )}
 
-      <motion.div variants={item} className="grid md:grid-cols-2 gap-6">
+      <motion.div {...item} className="grid md:grid-cols-2 gap-6">
         <Link to="/dashboard/voice" className="brutalist-card bg-surface border-2 border-white/10 p-8 group hover:border-primary transition-all">
           <Mic size={32} className="text-primary mb-6 group-hover:scale-110 transition-transform" />
           <h2 className="text-2xl font-display font-bold uppercase tracking-tight mb-2">Voice Doctor</h2>
@@ -66,7 +69,7 @@ const Dashboard = () => {
         )}
       </motion.div>
 
-      <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <motion.div {...item} className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { icon: Activity, label: 'Conditions', value: profile ? '—' : '', to: '/dashboard/history' },
           { icon: Pill, label: 'Medications', value: '', to: '/dashboard/medications' },
@@ -82,7 +85,7 @@ const Dashboard = () => {
       </motion.div>
 
       {convos.length > 0 && (
-        <motion.div variants={item} className="brutalist-card bg-surface border-2 border-white/10 overflow-hidden">
+        <motion.div {...item} className="brutalist-card bg-surface border-2 border-white/10 overflow-hidden">
           <div className="p-6 border-b-2 border-white/10 text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Recent consultations</div>
           <div className="divide-y-2 divide-white/10">
             {convos.slice(0, 5).map((c) => (

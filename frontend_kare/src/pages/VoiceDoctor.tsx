@@ -10,6 +10,7 @@ import { LANGUAGES, type LangCode } from '../types';
 import { voice as voiceApi, notifications } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { useVoiceConsult } from '../hooks/useVoiceConsult';
+import ConsentGate, { hasConsented } from '../components/ConsentGate';
 
 const TOOL_LABEL: Record<string, string> = {
   check_drug_interactions: 'Checked drug interactions',
@@ -38,17 +39,18 @@ const VoiceDoctor = () => {
   const [text, setText] = useState('');
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState<any>(null);
+  const [consented, setConsented] = useState(hasConsented);
 
   const v = useVoiceConsult(language, resumeConv);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => { if (audioRef.current) v.attachAudio(audioRef.current); }, [v.attachAudio]);
   useEffect(() => { v.setMuted(muted); }, [muted]); // eslint-disable-line
   useEffect(() => { if (followupId) notifications.markClicked(followupId); }, [followupId]);
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [v.messages, v.partial, v.phase]);
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [v.messages.length, v.partial, v.phase]);
 
   const busy = ['connecting', 'warming', 'transcribing', 'thinking'].includes(v.phase);
   const recording = v.phase === 'listening';
@@ -61,6 +63,7 @@ const VoiceDoctor = () => {
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-8 h-[calc(100vh-64px)]">
+      {!consented && <ConsentGate onAccept={() => setConsented(true)} />}
       <div className="flex flex-wrap justify-between items-end gap-4">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-1">AI Consultation</div>
@@ -94,7 +97,7 @@ const VoiceDoctor = () => {
 
       <div className="flex-1 grid lg:grid-cols-3 gap-5 min-h-0">
         <div className="lg:col-span-2 brutalist-card bg-surface border-2 border-white/10 flex flex-col overflow-hidden min-h-0">
-          <div ref={scrollRef} className="flex-1 p-5 md:p-6 overflow-y-auto space-y-5 min-h-0">
+          <div className="flex-1 p-5 md:p-6 overflow-y-auto space-y-5 min-h-0">
             {v.messages.length === 0 && !busy && (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
                 <Stethoscope size={40} className="text-primary mb-4" />
@@ -140,6 +143,7 @@ const VoiceDoctor = () => {
                 ))}
               </div>
             )}
+            <div ref={bottomRef} />
           </div>
 
           <div className="p-5 bg-black/40 border-t-2 border-white/10 flex gap-3">
