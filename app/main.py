@@ -29,6 +29,7 @@ from app.routers import (
     medications,
     notifications,
     patients,
+    pregnancy,
     symptoms,
     voice,
 )
@@ -117,7 +118,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 API_PREFIX = "/api/v1"
 for r in (auth, patients, medical_history, medications,
-          voice, symptoms, drug_interactions, image_analysis, notifications):
+          voice, symptoms, drug_interactions, image_analysis, notifications, pregnancy):
     app.include_router(r.router, prefix=API_PREFIX)
 
 

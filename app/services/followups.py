@@ -100,11 +100,17 @@ async def decide_and_plan(db: Session, conv: Conversation) -> ScheduledFollowUp 
         return None
     convo = "\n".join(f"{m.role}: {m.content}" for m in msgs[-16:])
 
+    extra = ""
+    preg = patient.active_pregnancy
+    if preg:
+        from app.services.pregnancy import build_pregnancy_context, followup_cadence_hint
+        extra = f"\n\n{build_pregnancy_context(preg)}\n{followup_cadence_hint(preg)}"
+
     try:
         resp = await get_llm().complete(
             [
                 {"role": "system", "content": _DECIDE_SYSTEM},
-                {"role": "user", "content": f"Notes: {build_health_notes_context(patient.health_notes)}\n\n{convo}"},
+                {"role": "user", "content": f"Notes: {build_health_notes_context(patient.health_notes)}{extra}\n\n{convo}"},
             ],
             model=settings.GROQ_LLM_MODEL_FAST,
             temperature=0.2, max_tokens=400, json_mode=True, reasoning_effort="low",
@@ -201,11 +207,22 @@ async def _compose(db: Session, followup: ScheduledFollowUp) -> str:
     lang_name = settings.LANGUAGE_NAMES.get(followup.language, "English")
 
     system = COMPOSE_SYSTEM.format(name=patient.first_name, language_name=lang_name)
+    preg_block = ""
+    preg = patient.active_pregnancy
+    if preg:
+        from app.services.pregnancy import _PERSONA, build_pregnancy_context
+        little_one = _PERSONA.get(preg.baby_sex, "our little one")
+        preg_block = (
+            f"\n\nShe is pregnant ({build_pregnancy_context(preg)}). You may refer to the baby "
+            f"warmly as \"{little_one}\". A pregnancy check-in also asks how she and the baby are, "
+            "and gently whether she's noticed any unusual pain, bleeding, swelling, or change in the "
+            "baby's movements — woven in, not listed."
+        )
     user_block = (
         f"Patient: {build_patient_context(patient)}\n\n"
         f"Your notes: {build_health_notes_context(patient.health_notes)}\n\n"
         f"Last conversation (about {hours_ago}h ago):\n{recent_text}\n\n"
-        f"Follow up on:\n{topics}"
+        f"Follow up on:\n{topics}{preg_block}"
     )
     resp = await get_llm().complete(
         [{"role": "system", "content": system}, {"role": "user", "content": user_block}],

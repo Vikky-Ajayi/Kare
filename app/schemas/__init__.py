@@ -329,6 +329,48 @@ class FollowupPreferences(BaseModel):
 
 
 # ─────────────────────────────────────────────
+# PREGNANCY
+# ─────────────────────────────────────────────
+
+class PregnancyOnboardRequest(BaseModel):
+    """Give whichever anchor is known — the app resolves the rest."""
+    weeks: int | None = Field(None, ge=0, le=45)
+    days: int | None = Field(None, ge=0, le=6)
+    lmp_date: date | None = None
+    edd: date | None = None
+    ultrasound_date: date | None = None
+    ultrasound_ga_weeks: float | None = Field(None, ge=4, le=42)
+    baby_sex: str | None = None            # unknown | male | female | undisclosed
+    gravida: int | None = Field(None, ge=1, le=20)
+    para: int | None = Field(None, ge=0, le=20)
+    history_notes: str | None = None
+
+
+class PregnancyUpdateRequest(PregnancyOnboardRequest):
+    pass
+
+
+class PregnancyEndRequest(BaseModel):
+    outcome: str = "completed"               # completed | loss | ended
+
+
+class PregnancyResponse(BaseModel):
+    id: uuid.UUID
+    status: str
+    gestational_age: str
+    gestational_age_days: int | None
+    trimester: int | None
+    estimated_due_date: date | None
+    days_to_edd: int | None
+    edd_source: str
+    baby_sex: str
+    gravida: int | None
+    para: int | None
+    history_notes: str | None
+    this_week: str
+
+
+# ─────────────────────────────────────────────
 # GENERIC RESPONSE
 # ─────────────────────────────────────────────
 

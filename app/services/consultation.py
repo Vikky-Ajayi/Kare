@@ -146,20 +146,16 @@ def _system_prompt(patient, stage: str) -> str:
         nc = build_health_notes_context(patient.health_notes) if patient.health_notes else ""
         if nc:
             prompt += f"\n\n=== YOUR NOTES FROM PAST SESSIONS ===\n{nc}"
+        preg = patient.active_pregnancy
+        if preg:
+            from app.services.pregnancy import build_pregnancy_context, pregnancy_system_overlay
+            prompt += pregnancy_system_overlay(preg)
+            prompt += f"\n\n=== PREGNANCY ===\n{build_pregnancy_context(preg)}"
     return prompt
 
 
 def _is_pregnant(patient) -> bool:
-    if not patient:
-        return False
-    if any("pregnan" in (c.condition_name or "").lower() for c in patient.medical_conditions):
-        return True
-    notes = patient.health_notes
-    blob = " ".join(str(x) for x in [
-        notes and notes.raw_notes, notes and notes.key_concerns,
-        notes and " ".join(notes.presenting_complaints or []),
-    ] if x)
-    return "pregnan" in blob.lower()
+    return bool(patient and patient.active_pregnancy)
 
 
 async def _escalation_reply(ctx: ToolContext, text: str, reason: str, history: list[dict]) -> str:

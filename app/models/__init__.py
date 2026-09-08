@@ -143,6 +143,12 @@ class Patient(Base):
     image_analyses = relationship("ImageAnalysis", back_populates="patient", cascade="all, delete-orphan")
     health_notes = relationship("PatientHealthNotes", back_populates="patient", uselist=False, cascade="all, delete-orphan")
     followups = relationship("ScheduledFollowUp", back_populates="patient", cascade="all, delete-orphan")
+    pregnancies = relationship("PregnancyProfile", back_populates="patient", cascade="all, delete-orphan",
+                               order_by="desc(PregnancyProfile.created_at)")
+
+    @property
+    def active_pregnancy(self):
+        return next((p for p in self.pregnancies if p.status == "active"), None)
 
 
 # ─────────────────────────────────────────────
@@ -330,6 +336,84 @@ class PushSubscription(Base):
     last_used_at = Column(DateTime, nullable=True)
 
     user = relationship("User", back_populates="push_subscriptions")
+
+
+class PregnancyProfile(Base):
+    """
+    One pregnancy journey. EDD and gestational age are computed live from
+    whichever anchor we have (a known EDD, the last menstrual period, or an
+    ultrasound dating) — never stored stale.
+    """
+    __tablename__ = "pregnancy_profiles"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    patient_id = Column(String(36), ForeignKey("patients.id", ondelete="CASCADE"), nullable=False)
+    status = Column(String(20), default="active")   # active | completed | ended
+
+    lmp_date = Column(Date, nullable=True)
+    edd = Column(Date, nullable=True)
+    edd_source = Column(String(20), default="lmp")   # lmp | known_edd | ultrasound | weeks
+    ultrasound_date = Column(Date, nullable=True)
+    ultrasound_ga_days = Column(Integer, nullable=True)   # gestational age in days at the scan
+
+    baby_sex = Column(String(12), default="unknown")     # unknown | male | female | undisclosed
+    gravida = Column(Integer, nullable=True)             # total pregnancies incl. this one
+    para = Column(Integer, nullable=True)                # prior births past 24 weeks
+    history_notes = Column(Text, nullable=True)
+    risk_flags = Column(JSONType, default=list)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    ended_at = Column(DateTime, nullable=True)
+
+    patient = relationship("Patient", back_populates="pregnancies")
+
+    # ── computed ──────────────────────────────────────────────
+    def _edd(self):
+        from datetime import timedelta
+        if self.edd:
+            return self.edd
+        if self.ultrasound_date and self.ultrasound_ga_days is not None:
+            return self.ultrasound_date + timedelta(days=280 - self.ultrasound_ga_days)
+        if self.lmp_date:
+            return self.lmp_date + timedelta(days=280)
+        return None
+
+    @property
+    def estimated_due_date(self):
+        return self._edd()
+
+    @property
+    def gestational_age_days(self):
+        from datetime import date
+        edd = self._edd()
+        if not edd:
+            return None
+        ga = 280 - (edd - date.today()).days
+        return max(0, min(ga, 320))
+
+    @property
+    def gestational_age_str(self):
+        ga = self.gestational_age_days
+        if ga is None:
+            return "unknown"
+        return f"{ga // 7}w{ga % 7}d"
+
+    @property
+    def trimester(self):
+        ga = self.gestational_age_days
+        if ga is None:
+            return None
+        if ga < 14 * 7:
+            return 1
+        if ga < 28 * 7:
+            return 2
+        return 3
+
+    @property
+    def days_to_edd(self):
+        from datetime import date
+        edd = self._edd()
+        return (edd - date.today()).days if edd else None
 
 
 class ScheduledFollowUp(Base):

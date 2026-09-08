@@ -233,6 +233,19 @@ def _upsert(db, p: dict) -> None:
         setattr(notes, k, v)
     notes.updated_at = datetime.utcnow()
 
+    # pregnancy profile for the pregnant persona
+    from app.models import PregnancyProfile
+    db.query(PregnancyProfile).filter(PregnancyProfile.patient_id == patient.id).delete()
+    if p.get("pregnant"):
+        lmp = date.today() - timedelta(weeks=24, days=3)   # ~24w3d along
+        db.add(PregnancyProfile(
+            patient_id=patient.id, status="active",
+            lmp_date=lmp, edd_source="lmp", baby_sex="female",
+            gravida=2, para=1,
+            history_notes="First birth normal delivery at term. This pregnancy: mild anaemia, "
+                          "one episode of light spotting around 22 weeks that settled.",
+        ))
+
     # one prior conversation so "the doctor remembers you" is visible on day one
     db.query(Conversation).filter(
         Conversation.user_id == user.id,
