@@ -1,1 +1,2 @@
-web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+release: alembic upgrade head
+web: gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w ${WEB_CONCURRENCY:-2} -b 0.0.0.0:${PORT:-8000} --timeout 120

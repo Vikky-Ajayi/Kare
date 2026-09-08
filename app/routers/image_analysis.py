@@ -7,7 +7,6 @@ GET  /images/{analysis_id}    — Get a specific analysis result
 """
 
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -65,7 +64,7 @@ async def analyze_medical_image(
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Unsupported image format. Allowed: jpeg, png, webp, gif, bmp.",
+            detail="Unsupported image format. Allowed: jpeg, png, webp, gif, bmp.",
         )
 
     contents = await file.read()

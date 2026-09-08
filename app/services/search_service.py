@@ -7,10 +7,9 @@ Install: pip install duckduckgo-search
 """
 
 import asyncio
-from typing import List
 
 
-async def search_medical(query: str, max_results: int = 4) -> List[dict]:
+async def search_medical(query: str, max_results: int = 4) -> list[dict]:
     """Search DuckDuckGo for medical information."""
     try:
         from duckduckgo_search import DDGS
@@ -38,7 +37,7 @@ async def search_medical(query: str, max_results: int = 4) -> List[dict]:
         return []
 
 
-def format_for_prompt(results: List[dict]) -> str:
+def format_for_prompt(results: list[dict]) -> str:
     if not results:
         return "No search results available."
     lines = []

@@ -1,37 +1,21 @@
-"""Alembic migration environment."""
+"""Alembic migration environment.
 
-import sys
+Reuses the app's URL normalisation and Base so migrations and the running app
+never disagree about the schema or the connection string.
+"""
+
 from logging.config import fileConfig
 
-from sqlalchemy import create_engine, pool, text
+from sqlalchemy import engine_from_config, pool
+
+import app.models  # noqa: F401  (register every model on Base.metadata)
 from alembic import context
 
-from app.config import settings
-from app.database import Base
-from app.models import *  # noqa
+# Importing app.database runs the same scheme/ssl normalisation the app uses.
+from app.database import DB_URL, Base
 
-# ── Build and validate DB URL ──────────────────────────────────
-db_url = settings.DATABASE_URL
-
-if not db_url or db_url == "sqlite:///./dev.db":
-    print("\n❌  DATABASE_URL is not set in your .env file.\n")
-    sys.exit(1)
-
-# Normalize scheme
-db_url = db_url.replace("postgres://", "postgresql://", 1)
-
-# Force psycopg2 driver explicitly
-if db_url.startswith("postgresql://") and "+psycopg2" not in db_url:
-    db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
-
-# Ensure sslmode=require is in the URL
-if "sslmode" not in db_url:
-    separator = "&" if "?" in db_url else "?"
-    db_url = db_url + separator + "sslmode=require"
-
-# ── Alembic config ─────────────────────────────────────────────
 config = context.config
-config.set_main_option("sqlalchemy.url", db_url)
+config.set_main_option("sqlalchemy.url", DB_URL)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -41,38 +25,29 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     context.configure(
-        url=db_url,
+        url=DB_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
+        compare_server_default=True,
     )
     with context.begin_transaction():
         context.run_migrations()
 
 
 def run_migrations_online() -> None:
-    connectable = create_engine(
-        db_url,
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
         poolclass=pool.NullPool,
-        # No connect_args here — sslmode is in the URL
     )
-
-    # Quick connectivity test with helpful error message
-    try:
-        with connectable.connect() as test_conn:
-            test_conn.execute(text("SELECT 1"))
-    except Exception as e:
-        print(f"\n❌  Database connection failed: {e}")
-        print(f"\n    URL used (password hidden): {db_url.split(':')[0]}://***@{db_url.split('@')[-1]}")
-        print("    Check your DATABASE_URL in .env\n")
-        sys.exit(1)
-
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
+            compare_server_default=True,
         )
         with context.begin_transaction():
             context.run_migrations()

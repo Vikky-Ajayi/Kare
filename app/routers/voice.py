@@ -12,21 +12,24 @@ DELETE /voice/conversations/{id} — End conversation (triggers note extraction)
 """
 
 import base64
+import contextlib
 import uuid as uuid_module
 from datetime import datetime
-from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.middleware.auth_middleware import get_current_patient_user
 from app.models import Conversation, ConversationMessage, PatientHealthNotes, User
-from app.schemas import TranscribeResponse, SynthesizeRequest, VoiceChatRequest, VoiceChatResponse
+from app.schemas import SynthesizeRequest, TranscribeResponse, VoiceChatRequest, VoiceChatResponse
 from app.services.groq_service import (
-    transcribe_audio, consult_patient, extract_health_notes,
-    build_patient_context, build_health_notes_context,
+    build_health_notes_context,
+    build_patient_context,
+    consult_patient,
+    extract_health_notes,
+    transcribe_audio,
 )
 from app.services.tts_service import synthesize_speech
 from app.utils.helpers import get_disclaimer
@@ -46,7 +49,7 @@ MAX_AUDIO_SIZE = 25 * 1024 * 1024
 # ─────────────────────────────────────────────
 
 def _get_or_create_conversation(
-    conversation_id: Optional[str],
+    conversation_id: str | None,
     user_id: str,
     language: str,
     db: Session
@@ -219,10 +222,8 @@ async def voice_chat(
         ConversationMessage.conversation_id == conversation.id
     ).count()
     if msg_count % 4 == 0 and patient:
-        try:
+        with contextlib.suppress(Exception):
             await _update_health_notes(conversation, str(patient.id), db)
-        except Exception:
-            pass
 
     # Generate TTS audio
     audio_b64 = None
@@ -251,7 +252,7 @@ async def voice_chat(
 async def voice_chat_audio(
     file: UploadFile = File(..., description="Audio recording from patient"),
     language: str = Form(default="en"),
-    conversation_id: Optional[str] = Form(default=None),
+    conversation_id: str | None = Form(default=None),
     current_user: User = Depends(get_current_patient_user),
     db: Session = Depends(get_db),
 ):
@@ -303,10 +304,8 @@ async def voice_chat_audio(
         ConversationMessage.conversation_id == conversation.id
     ).count()
     if msg_count % 4 == 0 and patient:
-        try:
+        with contextlib.suppress(Exception):
             await _update_health_notes(conversation, str(patient.id), db)
-        except Exception:
-            pass
 
     return {
         "conversation_id": conversation.id,
@@ -463,9 +462,7 @@ async def end_conversation(
 
     # Final note extraction on conversation end
     if current_user.patient:
-        try:
+        with contextlib.suppress(Exception):
             await _update_health_notes(conv, str(current_user.patient.id), db)
-        except Exception:
-            pass
 
     return {"message": "Conversation ended.", "conversation_id": conversation_id}

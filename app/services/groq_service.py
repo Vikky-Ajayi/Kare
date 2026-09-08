@@ -7,13 +7,13 @@ before drawing conclusions — just like a doctor who does their research.
 import base64
 import json
 import re
-from typing import Optional
 
 from groq import AsyncGroq
-from app.config import settings
-from app.services.search_service import search_medical, format_for_prompt
 
-_client: Optional[AsyncGroq] = None
+from app.config import settings
+from app.services.search_service import format_for_prompt, search_medical
+
+_client: AsyncGroq | None = None
 
 
 def get_groq_client() -> AsyncGroq:

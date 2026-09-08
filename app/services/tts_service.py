@@ -10,7 +10,6 @@ Install: pip install gTTS
 
 import asyncio
 import io
-from typing import Optional
 
 # Language code mapping — gTTS uses ISO 639-1 codes
 # Reference: https://gtts.readthedocs.io/en/latest/module.html#languages-gtts-lang

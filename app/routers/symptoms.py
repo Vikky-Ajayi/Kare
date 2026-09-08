@@ -6,7 +6,6 @@ GET  /symptoms/history — Past symptom checks for the patient
 """
 
 import uuid
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -29,7 +28,7 @@ async def check_symptoms(
 ):
     """
     AI-powered symptom analysis with triage.
-    
+
     - Accepts symptom description in any supported language
     - Considers patient's medical history if requested
     - Returns triage level, possible conditions, and recommendations

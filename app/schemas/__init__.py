@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-
 # ─────────────────────────────────────────────
 # AUTH SCHEMAS
 # ─────────────────────────────────────────────
@@ -59,33 +58,33 @@ class UserResponse(BaseModel):
 class PatientCreate(BaseModel):
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
-    date_of_birth: Optional[date] = None
-    gender: Optional[str] = None
-    phone_number: Optional[str] = None
+    date_of_birth: date | None = None
+    gender: str | None = None
+    phone_number: str | None = None
     country: str = "Nigeria"
-    state: Optional[str] = None
-    blood_group: Optional[str] = "unknown"
-    height_cm: Optional[float] = Field(None, ge=50, le=300)
-    weight_kg: Optional[float] = Field(None, ge=1, le=500)
-    allergies: List[str] = []
-    emergency_contact_name: Optional[str] = None
-    emergency_contact_phone: Optional[str] = None
+    state: str | None = None
+    blood_group: str | None = "unknown"
+    height_cm: float | None = Field(None, ge=50, le=300)
+    weight_kg: float | None = Field(None, ge=1, le=500)
+    allergies: list[str] = []
+    emergency_contact_name: str | None = None
+    emergency_contact_phone: str | None = None
 
 
 class PatientUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    date_of_birth: Optional[date] = None
-    gender: Optional[str] = None
-    phone_number: Optional[str] = None
-    country: Optional[str] = None
-    state: Optional[str] = None
-    blood_group: Optional[str] = None
-    height_cm: Optional[float] = Field(None, ge=50, le=300)
-    weight_kg: Optional[float] = Field(None, ge=1, le=500)
-    allergies: Optional[List[str]] = None
-    emergency_contact_name: Optional[str] = None
-    emergency_contact_phone: Optional[str] = None
+    first_name: str | None = None
+    last_name: str | None = None
+    date_of_birth: date | None = None
+    gender: str | None = None
+    phone_number: str | None = None
+    country: str | None = None
+    state: str | None = None
+    blood_group: str | None = None
+    height_cm: float | None = Field(None, ge=50, le=300)
+    weight_kg: float | None = Field(None, ge=1, le=500)
+    allergies: list[str] | None = None
+    emergency_contact_name: str | None = None
+    emergency_contact_phone: str | None = None
 
 
 class PatientResponse(BaseModel):
@@ -93,20 +92,20 @@ class PatientResponse(BaseModel):
     user_id: uuid.UUID
     first_name: str
     last_name: str
-    date_of_birth: Optional[date]
-    gender: Optional[str]
-    phone_number: Optional[str]
+    date_of_birth: date | None
+    gender: str | None
+    phone_number: str | None
     country: str
-    state: Optional[str]
-    blood_group: Optional[str]
-    height_cm: Optional[float]
-    weight_kg: Optional[float]
-    allergies: List[str]
-    emergency_contact_name: Optional[str]
-    emergency_contact_phone: Optional[str]
-    profile_photo_url: Optional[str]
-    age: Optional[int] = None
-    bmi: Optional[float] = None
+    state: str | None
+    blood_group: str | None
+    height_cm: float | None
+    weight_kg: float | None
+    allergies: list[str]
+    emergency_contact_name: str | None
+    emergency_contact_phone: str | None
+    profile_photo_url: str | None
+    age: int | None = None
+    bmi: float | None = None
     created_at: datetime
 
     class Config:
@@ -119,34 +118,34 @@ class PatientResponse(BaseModel):
 
 class MedicalConditionCreate(BaseModel):
     condition_name: str = Field(min_length=1, max_length=200)
-    icd10_code: Optional[str] = None
+    icd10_code: str | None = None
     status: str = "active"
-    diagnosed_date: Optional[date] = None
-    resolved_date: Optional[date] = None
-    notes: Optional[str] = None
-    diagnosed_by: Optional[str] = None
+    diagnosed_date: date | None = None
+    resolved_date: date | None = None
+    notes: str | None = None
+    diagnosed_by: str | None = None
 
 
 class MedicalConditionUpdate(BaseModel):
-    condition_name: Optional[str] = None
-    icd10_code: Optional[str] = None
-    status: Optional[str] = None
-    diagnosed_date: Optional[date] = None
-    resolved_date: Optional[date] = None
-    notes: Optional[str] = None
-    diagnosed_by: Optional[str] = None
+    condition_name: str | None = None
+    icd10_code: str | None = None
+    status: str | None = None
+    diagnosed_date: date | None = None
+    resolved_date: date | None = None
+    notes: str | None = None
+    diagnosed_by: str | None = None
 
 
 class MedicalConditionResponse(BaseModel):
     id: uuid.UUID
     patient_id: uuid.UUID
     condition_name: str
-    icd10_code: Optional[str]
+    icd10_code: str | None
     status: str
-    diagnosed_date: Optional[date]
-    resolved_date: Optional[date]
-    notes: Optional[str]
-    diagnosed_by: Optional[str]
+    diagnosed_date: date | None
+    resolved_date: date | None
+    notes: str | None
+    diagnosed_by: str | None
     created_at: datetime
 
     class Config:
@@ -159,43 +158,43 @@ class MedicalConditionResponse(BaseModel):
 
 class MedicationCreate(BaseModel):
     drug_name: str = Field(min_length=1, max_length=200)
-    rxnorm_cui: Optional[str] = None
-    dosage: Optional[str] = None
-    frequency: Optional[str] = None
-    route: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    rxnorm_cui: str | None = None
+    dosage: str | None = None
+    frequency: str | None = None
+    route: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
     status: str = "active"
-    prescribed_by: Optional[str] = None
-    notes: Optional[str] = None
+    prescribed_by: str | None = None
+    notes: str | None = None
 
 
 class MedicationUpdate(BaseModel):
-    drug_name: Optional[str] = None
-    dosage: Optional[str] = None
-    frequency: Optional[str] = None
-    route: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    status: Optional[str] = None
-    prescribed_by: Optional[str] = None
-    notes: Optional[str] = None
+    drug_name: str | None = None
+    dosage: str | None = None
+    frequency: str | None = None
+    route: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    status: str | None = None
+    prescribed_by: str | None = None
+    notes: str | None = None
 
 
 class MedicationResponse(BaseModel):
     id: uuid.UUID
     patient_id: uuid.UUID
     drug_name: str
-    rxnorm_cui: Optional[str]
-    dosage: Optional[str]
-    frequency: Optional[str]
-    route: Optional[str]
-    start_date: Optional[date]
-    end_date: Optional[date]
+    rxnorm_cui: str | None
+    dosage: str | None
+    frequency: str | None
+    route: str | None
+    start_date: date | None
+    end_date: date | None
     status: str
-    prescribed_by: Optional[str]
-    notes: Optional[str]
-    image_url: Optional[str]
+    prescribed_by: str | None
+    notes: str | None
+    image_url: str | None
     created_at: datetime
 
     class Config:
@@ -208,8 +207,8 @@ class MedicationResponse(BaseModel):
 
 class TranscribeResponse(BaseModel):
     text: str
-    language_detected: Optional[str]
-    duration_seconds: Optional[float]
+    language_detected: str | None
+    duration_seconds: float | None
 
 
 class SynthesizeRequest(BaseModel):
@@ -220,7 +219,7 @@ class SynthesizeRequest(BaseModel):
 class VoiceChatRequest(BaseModel):
     text: str = Field(min_length=1, max_length=2000)
     language: str = Field(default="en")
-    conversation_id: Optional[uuid.UUID] = None
+    conversation_id: uuid.UUID | None = None
     include_audio: bool = True
 
 
@@ -229,8 +228,8 @@ class VoiceChatResponse(BaseModel):
     user_message: str
     assistant_message: str
     language: str
-    audio_base64: Optional[str] = None    # base64-encoded MP3
-    triage_level: Optional[str] = None
+    audio_base64: str | None = None    # base64-encoded MP3
+    triage_level: str | None = None
     disclaimer: str
 
 
@@ -250,10 +249,10 @@ class SymptomCheckRequest(BaseModel):
 
 class SymptomCheckResponse(BaseModel):
     check_id: uuid.UUID
-    symptoms_reported: List[str]
+    symptoms_reported: list[str]
     triage_level: str
     triage_explanation: str
-    possible_conditions: List[Dict[str, Any]]
+    possible_conditions: list[dict[str, Any]]
     recommendations: str
     when_to_seek_emergency: str
     disclaimer: str
@@ -267,25 +266,25 @@ class SymptomCheckResponse(BaseModel):
 class DrugSearchResponse(BaseModel):
     rxcui: str
     name: str
-    synonyms: List[str] = []
+    synonyms: list[str] = []
 
 
 class DrugInteractionRequest(BaseModel):
-    drug_names: List[str] = Field(min_length=2, description="At least 2 drug names to check")
+    drug_names: list[str] = Field(min_length=2, description="At least 2 drug names to check")
 
 
 class InteractionDetail(BaseModel):
     drug_1: str
     drug_2: str
-    severity: Optional[str]
+    severity: str | None
     description: str
     source: str = "RxNorm / NIH"
 
 
 class DrugInteractionResponse(BaseModel):
-    drugs_checked: List[str]
+    drugs_checked: list[str]
     interactions_found: int
-    interactions: List[InteractionDetail]
+    interactions: list[InteractionDetail]
     ai_summary: str
     disclaimer: str
 
@@ -298,7 +297,7 @@ class ImageAnalysisResponse(BaseModel):
     analysis_id: uuid.UUID
     image_type: str
     analysis: str
-    structured_findings: Optional[Dict[str, Any]]
+    structured_findings: dict[str, Any] | None
     confidence_note: str
     disclaimer: str
 
@@ -313,7 +312,7 @@ class MessageResponse(BaseModel):
 
 
 class PaginatedResponse(BaseModel):
-    items: List[Any]
+    items: list[Any]
     total: int
     page: int
     per_page: int

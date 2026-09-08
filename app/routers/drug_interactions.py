@@ -8,7 +8,6 @@ GET  /drugs/interactions/my-meds      — Check interactions among patient's act
 GET  /drugs/warnings/{drug_name}      — Get drug warnings from OpenFDA
 """
 
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -24,7 +23,7 @@ from app.utils.helpers import get_disclaimer
 router = APIRouter(prefix="/drugs", tags=["Drug Interactions"])
 
 
-@router.get("/search", response_model=List[DrugSearchResponse])
+@router.get("/search", response_model=list[DrugSearchResponse])
 async def search_drugs(
     q: str = Query(min_length=2, description="Drug name to search"),
     current_user: User = Depends(get_current_user),

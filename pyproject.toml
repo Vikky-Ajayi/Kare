@@ -1,0 +1,37 @@
+[project]
+name = "kare"
+version = "2.0.0"
+description = "Voice-first, memory-keeping health companion for West Africa"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions", "frontend_kare", ".venv", "venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+ignore = ["E501", "B008", "SIM108"]  # B008: FastAPI Depends() in defaults is fine
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]
+"scripts/*" = ["E402"]
+# Legacy modules rewritten in P2/P5 (agent core + frontend rewire). Each entry
+# is removed as its file is rebuilt; new code added here must lint clean.
+"app/routers/drug_interactions.py" = ["B904"]
+"app/routers/image_analysis.py" = ["B904"]
+"app/routers/medications.py" = ["B904", "SIM105"]
+"app/routers/symptoms.py" = ["B904"]
+"app/routers/voice.py" = ["B904"]
+"app/services/tts_service.py" = ["B904"]
+"app/services/__init__.py" = ["F401"]
+"app/routers/__init__.py" = ["F401"]
+"app/utils/__init__.py" = ["F401"]
+"app/schemas/__init__.py" = ["F401", "UP035"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = ["ignore::DeprecationWarning"]

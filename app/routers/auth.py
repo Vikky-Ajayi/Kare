@@ -9,8 +9,16 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
+from app.middleware.auth_middleware import get_current_user
 from app.models import RefreshToken, User
-from app.schemas import LoginRequest, MessageResponse, RefreshRequest, RegisterRequest, TokenResponse, UserResponse
+from app.schemas import (
+    LoginRequest,
+    MessageResponse,
+    RefreshRequest,
+    RegisterRequest,
+    TokenResponse,
+    UserResponse,
+)
 from app.utils.security import (
     create_access_token,
     create_refresh_token,
@@ -18,7 +26,6 @@ from app.utils.security import (
     hash_token,
     verify_password,
 )
-from app.middleware.auth_middleware import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -107,7 +114,7 @@ async def refresh_token(payload: RefreshRequest, db: Session = Depends(get_db)):
 
     record = db.query(RefreshToken).filter(
         RefreshToken.token_hash == token_hash,
-        RefreshToken.is_revoked == False,
+        RefreshToken.is_revoked.is_(False),
         RefreshToken.expires_at > datetime.utcnow(),
     ).first()
 
@@ -117,7 +124,7 @@ async def refresh_token(payload: RefreshRequest, db: Session = Depends(get_db)):
             detail="Invalid or expired refresh token.",
         )
 
-    user = db.query(User).filter(User.id == record.user_id, User.is_active == True).first()
+    user = db.query(User).filter(User.id == record.user_id, User.is_active.is_(True)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
 

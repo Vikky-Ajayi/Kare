@@ -13,18 +13,16 @@ Docs:
 """
 
 import asyncio
-from typing import List, Optional
 
 import httpx
 
 from app.config import settings
 
-
 # ─────────────────────────────────────────────
 # DRUG NAME → RXCUI LOOKUP
 # ─────────────────────────────────────────────
 
-async def get_rxcui(drug_name: str) -> Optional[str]:
+async def get_rxcui(drug_name: str) -> str | None:
     """
     Resolve a drug name to its RxNorm CUI (Concept Unique Identifier).
     This is needed before checking interactions.
@@ -96,7 +94,7 @@ async def get_drug_info(rxcui: str) -> dict:
 # DRUG INTERACTION CHECKING
 # ─────────────────────────────────────────────
 
-async def check_interactions_by_rxcui(rxcui_list: List[str]) -> list:
+async def check_interactions_by_rxcui(rxcui_list: list[str]) -> list:
     """
     Check for interactions between drugs given their RxCUI codes.
     Uses the NIH Drug Interaction API (free, no key needed).
@@ -120,7 +118,7 @@ async def check_interactions_by_rxcui(rxcui_list: List[str]) -> list:
     for group in interaction_type_groups:
         source = group.get("sourceName", "NIH")
         for interaction_type in group.get("fullInteractionType", []):
-            comment = interaction_type.get("comment", "")
+            interaction_type.get("comment", "")
             for pair in interaction_type.get("interactionPair", []):
                 severity = pair.get("severity", "unknown")
                 description = pair.get("description", "")
@@ -143,7 +141,7 @@ async def check_interactions_by_rxcui(rxcui_list: List[str]) -> list:
     return interactions
 
 
-async def check_interactions_by_name(drug_names: List[str]) -> dict:
+async def check_interactions_by_name(drug_names: list[str]) -> dict:
     """
     Main entry point: check interactions by drug names.
     Resolves names to RxCUI, then checks interactions.
@@ -156,7 +154,7 @@ async def check_interactions_by_name(drug_names: List[str]) -> dict:
     # Build mapping of name → rxcui
     resolved = {}
     failed = []
-    for name, rxcui in zip(drug_names, rxcui_results):
+    for name, rxcui in zip(drug_names, rxcui_results, strict=False):
         if isinstance(rxcui, Exception) or rxcui is None:
             failed.append(name)
         else:

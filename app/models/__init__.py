@@ -2,23 +2,29 @@
 All SQLAlchemy ORM models for the Voice Medical Assistant.
 """
 
-import uuid
 import enum
+import uuid
 from datetime import datetime
+
 from sqlalchemy import (
-    Column, String, Boolean, DateTime, Text,
-    ForeignKey, Enum, Date, Float, Integer
+    JSON,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
+
 from app.database import Base
 
-# Use JSON for SQLite compatibility, JSONB for PostgreSQL
-try:
-    from sqlalchemy.dialects.postgresql import JSONB as JSONType
-except ImportError:
-    from sqlalchemy import JSON as JSONType
-
-from sqlalchemy import JSON as JSONType   # universal fallback
+# JSONB on Postgres (indexable, typed), plain JSON everywhere else (SQLite tests).
+JSONType = JSON().with_variant(JSONB(), "postgresql")
 
 
 # ─────────────────────────────────────────────
@@ -29,24 +35,44 @@ class UserRole(str, enum.Enum):
     PATIENT = "patient"
     ADMIN = "admin"
 
+
 class BloodGroup(str, enum.Enum):
-    A_POS = "A+"; A_NEG = "A-"; B_POS = "B+"; B_NEG = "B-"
-    AB_POS = "AB+"; AB_NEG = "AB-"; O_POS = "O+"; O_NEG = "O-"
+    A_POS = "A+"
+    A_NEG = "A-"
+    B_POS = "B+"
+    B_NEG = "B-"
+    AB_POS = "AB+"
+    AB_NEG = "AB-"
+    O_POS = "O+"
+    O_NEG = "O-"
     UNKNOWN = "unknown"
 
+
 class ConditionStatus(str, enum.Enum):
-    ACTIVE = "active"; RESOLVED = "resolved"
-    CHRONIC = "chronic"; SUSPECTED = "suspected"
+    ACTIVE = "active"
+    RESOLVED = "resolved"
+    CHRONIC = "chronic"
+    SUSPECTED = "suspected"
+
 
 class MedicationStatus(str, enum.Enum):
-    ACTIVE = "active"; DISCONTINUED = "discontinued"; AS_NEEDED = "as_needed"
+    ACTIVE = "active"
+    DISCONTINUED = "discontinued"
+    AS_NEEDED = "as_needed"
+
 
 class TriageLevel(str, enum.Enum):
-    EMERGENCY = "emergency"; URGENT = "urgent"
-    SEMI_URGENT = "semi_urgent"; NON_URGENT = "non_urgent"; SELF_CARE = "self_care"
+    EMERGENCY = "emergency"
+    URGENT = "urgent"
+    SEMI_URGENT = "semi_urgent"
+    NON_URGENT = "non_urgent"
+    SELF_CARE = "self_care"
+
 
 class ConversationStatus(str, enum.Enum):
-    ACTIVE = "active"; COMPLETED = "completed"; ABANDONED = "abandoned"
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    ABANDONED = "abandoned"
 
 
 # ─────────────────────────────────────────────

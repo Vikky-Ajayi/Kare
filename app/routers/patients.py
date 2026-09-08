@@ -2,14 +2,13 @@
 Patients Router — manage the authenticated user's patient profile.
 """
 
-import uuid
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Patient, User
-from app.schemas import PatientCreate, PatientResponse, PatientUpdate, MessageResponse
 from app.middleware.auth_middleware import get_current_user
+from app.models import Patient, User
+from app.schemas import PatientResponse, PatientUpdate
 from app.utils.helpers import calculate_age, calculate_bmi
 
 router = APIRouter(prefix="/patients", tags=["Patient Profile"])

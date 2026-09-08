@@ -34,9 +34,6 @@ htmlcov/
 *.swo
 .DS_Store
 
-# Alembic
-alembic/versions/*.py
-
 # Logs
 *.log
 logs/
@@ -48,3 +45,19 @@ temp/
 # Database files
 medical_assistant.db
 dev.db
+*.sqlite3
+
+# Benchmark data / artifacts (large, downloaded on demand)
+benchmark/data/
+benchmark/_runs/
+benchmark/.cache/
+
+# Node
+node_modules/
+frontend_kare/dist/
+frontend_kare/dev-dist/
+
+# Misc
+.DS_Store
+*.pem
+scratch/

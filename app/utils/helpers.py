@@ -4,10 +4,9 @@ Miscellaneous helper utilities.
 
 import re
 from datetime import datetime
-from typing import Optional
 
 
-def calculate_age(date_of_birth) -> Optional[int]:
+def calculate_age(date_of_birth) -> int | None:
     """Calculate age from date of birth."""
     if not date_of_birth:
         return None
@@ -18,7 +17,7 @@ def calculate_age(date_of_birth) -> Optional[int]:
     return age
 
 
-def calculate_bmi(height_cm: Optional[float], weight_kg: Optional[float]) -> Optional[float]:
+def calculate_bmi(height_cm: float | None, weight_kg: float | None) -> float | None:
     """Calculate BMI from height (cm) and weight (kg)."""
     if not height_cm or not weight_kg:
         return None

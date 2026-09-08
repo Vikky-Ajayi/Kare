@@ -3,15 +3,19 @@ Medical History Router — CRUD for patient medical conditions.
 """
 
 import uuid
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import MedicalCondition, User
-from app.schemas import MedicalConditionCreate, MedicalConditionResponse, MedicalConditionUpdate, MessageResponse
 from app.middleware.auth_middleware import get_current_patient_user
+from app.models import MedicalCondition, User
+from app.schemas import (
+    MedicalConditionCreate,
+    MedicalConditionResponse,
+    MedicalConditionUpdate,
+    MessageResponse,
+)
 
 router = APIRouter(prefix="/medical-history", tags=["Medical History"])
 
@@ -26,7 +30,7 @@ def _get_condition_or_404(condition_id: uuid.UUID, patient_id: uuid.UUID, db: Se
     return condition
 
 
-@router.get("/", response_model=List[MedicalConditionResponse])
+@router.get("/", response_model=list[MedicalConditionResponse])
 async def list_conditions(
     status_filter: str = None,
     current_user: User = Depends(get_current_patient_user),

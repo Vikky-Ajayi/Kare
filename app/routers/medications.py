@@ -4,7 +4,6 @@ Includes medication image upload and AI-based drug identification.
 """
 
 import uuid
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
@@ -32,9 +31,9 @@ def _get_medication_or_404(med_id: uuid.UUID, patient_id: uuid.UUID, db: Session
     return med
 
 
-@router.get("/", response_model=List[MedicationResponse])
+@router.get("/", response_model=list[MedicationResponse])
 async def list_medications(
-    status_filter: Optional[str] = Query(None, alias="status"),
+    status_filter: str | None = Query(None, alias="status"),
     current_user: User = Depends(get_current_patient_user),
     db: Session = Depends(get_db),
 ):
