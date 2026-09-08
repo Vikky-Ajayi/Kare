@@ -219,16 +219,16 @@ class SynthesizeRequest(BaseModel):
 class VoiceChatRequest(BaseModel):
     text: str = Field(min_length=1, max_length=2000)
     language: str = Field(default="en")
-    conversation_id: uuid.UUID | None = None
+    conversation_id: str | None = None
     include_audio: bool = True
 
 
 class VoiceChatResponse(BaseModel):
-    conversation_id: uuid.UUID
+    conversation_id: str
     user_message: str
     assistant_message: str
     language: str
-    audio_base64: str | None = None    # base64-encoded MP3
+    audio_base64: str | None = None    # base64-encoded WAV
     triage_level: str | None = None
     disclaimer: str
 

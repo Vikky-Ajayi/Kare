@@ -12,12 +12,13 @@ GET  /drugs/warnings/{drug_name}      — Get drug warnings from OpenFDA
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.middleware.auth_middleware import get_current_patient_user, get_current_user
 from app.models import User
+from app.providers import get_llm
 from app.schemas import DrugInteractionRequest, DrugInteractionResponse, DrugSearchResponse
 from app.services import drug_interaction_service
-from app.services.groq_service import consult_patient
 from app.utils.helpers import get_disclaimer
 
 router = APIRouter(prefix="/drugs", tags=["Drug Interactions"])
@@ -117,12 +118,21 @@ async def check_drug_interactions(
             f"{', '.join(payload.drug_names)}. Write a brief, reassuring patient-friendly message in 2 sentences."
         )
 
+    lang_name = settings.LANGUAGE_NAMES.get(language, "English")
     try:
-        ai_summary = await consult_patient(
-            user_message=ai_prompt,
-            language=language,
+        resp = await get_llm().complete(
+            [
+                {"role": "system", "content": (
+                    f"You are a pharmacist explaining to a patient in {lang_name}. "
+                    "Plain spoken sentences, no markdown, under 120 words. "
+                    "Be clear about what the patient should actually do."
+                )},
+                {"role": "user", "content": ai_prompt},
+            ],
+            temperature=0.3, max_tokens=400, reasoning_effort="low",
         )
-    except Exception:
+        ai_summary = resp.content.strip()
+    except Exception:  # noqa: BLE001
         ai_summary = (
             f"Found {len(interactions)} interaction(s) between the checked medications. "
             "Please consult your pharmacist or doctor before combining these medications."

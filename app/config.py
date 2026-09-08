@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_LLM_MODEL: str = "openai/gpt-oss-120b"
     GROQ_LLM_MODEL_FAST: str = "openai/gpt-oss-20b"
+    GROQ_VISION_MODEL: str = "meta-llama/llama-4-scout-17b-16e-instruct"
     GROQ_WHISPER_MODEL: str = "whisper-large-v3"
     GROQ_WHISPER_MODEL_TURBO: str = "whisper-large-v3-turbo"
 
@@ -62,7 +63,7 @@ class Settings(BaseSettings):
 
     # ── Comma-separated strings in .env ───────────────────────────────────
     ALLOWED_ORIGINS_STR: str = "http://localhost:3000,http://localhost:5173"
-    SUPPORTED_LANGUAGES_STR: str = "en,yo,ha,ig,fr,pcm"
+    SUPPORTED_LANGUAGES_STR: str = "en,yo,ha,ig,pcm"
 
     # ── Derived ───────────────────────────────────────────────────────────
 
@@ -85,22 +86,21 @@ class Settings(BaseSettings):
             "yo": "Yoruba",
             "ha": "Hausa",
             "ig": "Igbo",
-            "fr": "French",
             "pcm": "Nigerian Pidgin",
         }
 
     @property
     def SAHARA_VOICE_MAP(self) -> dict:
-        """Kare language code -> Sahara TTS params. Verified/adjusted in P1
-        against the live API; `voice_language` falls back to 'en' where Sahara
-        has an accent but not a matching language model."""
+        """Kare language code -> Sahara TTS params, verified against the live API.
+        Sahara TTS speaks English only *with* an African accent (there is no
+        neutral 'en'); we route Kare's 'en' through the Yoruba English accent.
+        French has no Sahara TTS voice, so 'fr' is not an offered UI language."""
         return {
-            "en":  {"voice_language": "en",  "voice_accent": "english", "voice_gender": "female"},
-            "yo":  {"voice_language": "yo",  "voice_accent": "yoruba",  "voice_gender": "female"},
-            "ha":  {"voice_language": "ha",  "voice_accent": "hausa",   "voice_gender": "female"},
-            "ig":  {"voice_language": "ig",  "voice_accent": "igbo",    "voice_gender": "female"},
-            "pcm": {"voice_language": "pcm", "voice_accent": "pidgin",  "voice_gender": "female"},
-            "fr":  {"voice_language": "en",  "voice_accent": "english", "voice_gender": "female"},
+            "en":  {"voice_language": "en",  "voice_accent": "yoruba", "voice_gender": "female"},
+            "yo":  {"voice_language": "yo",  "voice_accent": "yoruba", "voice_gender": "female"},
+            "ha":  {"voice_language": "ha",  "voice_accent": "hausa",  "voice_gender": "female"},
+            "ig":  {"voice_language": "ig",  "voice_accent": "igbo",   "voice_gender": "female"},
+            "pcm": {"voice_language": "pcm", "voice_accent": "pidgin", "voice_gender": "female"},
         }
 
     def validate_runtime(self) -> list[str]:

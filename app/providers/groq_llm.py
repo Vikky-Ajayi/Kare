@@ -12,6 +12,7 @@ for conversational turns.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 
@@ -29,12 +30,21 @@ from app.providers.base import LLMProvider, LLMResponse, ToolCall
 log = logging.getLogger("kare.llm")
 
 _client: AsyncGroq | None = None
+_client_loop: object | None = None
 
 
 def _groq() -> AsyncGroq:
-    global _client
-    if _client is None:
+    """One AsyncGroq per event loop. Under uvicorn that's one for the process;
+    under the test client (fresh loop per request) it recreates as needed, so
+    the httpx transport is never bound to a closed loop."""
+    global _client, _client_loop
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+    if _client is None or _client_loop is not loop or (loop is not None and loop.is_closed()):
         _client = AsyncGroq(api_key=settings.GROQ_API_KEY, max_retries=0)
+        _client_loop = loop
     return _client
 
 
