@@ -85,8 +85,8 @@ app = FastAPI(
     title="Kare API",
     description=(
         "A voice-first, multilingual, memory-keeping health companion for "
-        "Nigeria and West Africa. English, Yoruba, Hausa, Igbo, French, and "
-        "Nigerian Pidgin — including natural code-switching.\n\n"
+        "Nigeria and West Africa. English, Yoruba, Hausa, Igbo and Nigerian "
+        "Pidgin — including natural code-switching.\n\n"
         "**Disclaimer:** informational use only. Not a substitute for a "
         "licensed healthcare professional."
     ),
