@@ -85,7 +85,7 @@ stated in the report's "Harness notes".
 | `groq-whisper-v3` | OpenAI Whisper-large-v3 on Groq | The de-facto open multilingual baseline; what most teams reach for. |
 | `groq-whisper-v3-turbo` | Whisper-large-v3-turbo on Groq | Same family, ~3× cheaper/faster — is the accuracy trade worth it? |
 | `faster-whisper-tiny` | CTranslate2 Whisper-tiny, **local CPU** | The "runs offline on a clinic laptop, $0/minute" floor. |
-| `openai-gpt4o-transcribe` | OpenAI `gpt-4o-transcribe` | A frontier *closed* model — is proprietary scale enough to beat a specialist? Included when `OPENAI_API_KEY` is set; the run is otherwise 4 models (still exceeds the requirement). |
+| `openai-gpt4o-transcribe` | OpenAI `gpt-4o-transcribe` | A frontier *closed* model — is proprietary scale enough to beat a specialist? Needs `OPENAI_API_KEY`. |
 
 Every model is given its **native ISO-639-1 language hint** where it has one
 (`yo`, `ha`, `ig`, `sw`). Pidgin has no code, so Whisper models auto-detect and

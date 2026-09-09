@@ -81,8 +81,10 @@ know we still get wrong.
   code-switched clinical audio, reports results **per language**, includes
   **Swahili as an out-of-family control** to expose models that only work on
   data they were tuned on, and breaks accuracy down by code-mixing intensity.
-  Igbo and Hausa have the least training data across every model tested and the
-  report says so rather than averaging it out.
+  The early results already show it: hosted Whisper scores far better on
+  Swahili than on Yoruba/Hausa/Igbo/Pidgin, and Igbo and Hausa have the least
+  training data across every model. The report states this rather than
+  averaging it out.
 - **Known gaps:**
   - Coverage is five languages out of the ~500 spoken in Nigeria. Others are
     completely unserved today.

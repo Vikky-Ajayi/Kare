@@ -105,6 +105,8 @@ MODELS: dict[str, dict] = {
         "kind": "local",
         "params": {"model_size": "tiny", "compute_type": "int8"},
     },
+    # Frontier closed model. Runs automatically once OPENAI_API_KEY is set
+    # (default_models() picks up any model whose key is present).
     "openai-gpt4o-transcribe": {
         "adapter": "benchmark.models.openai_gpt4o:OpenAIGpt4oAdapter",
         "label": "OpenAI · gpt-4o-transcribe",

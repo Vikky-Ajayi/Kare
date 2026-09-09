@@ -48,13 +48,18 @@ compares **5 ASR systems** on code-switched clinical audio (Intron
 AfriSwitchCare):
 
 - **Sahara (Intron)**, Groq **Whisper-large-v3**, Groq **Whisper-large-v3-turbo**,
-  **faster-whisper tiny** (local CPU), OpenAI **gpt-4o-transcribe**
+  **faster-whisper tiny** (local CPU), OpenAI **gpt-4o-transcribe** (frontier closed)
 - Metrics: WER/CER, **medical-term recall**, **number/dosage recall**,
   **Code-Mixing-Index error**, **switch-point error**, RTF, cost/minute
 - Per-language, with **Swahili as an out-of-family fairness control**, and
   broken down by code-mixing intensity
 - Frozen, seed-deterministic test subset; every number reproducible via
   `make benchmark`
+
+**Early findings** (Sahara + OpenAI passes pending API keys/credit): hosted
+Whisper *translates* Yoruba/Pidgin/Swahili into English rather than
+transcribing the code-switch — and is markedly better on Swahili, which it has
+training data for, than on the Nigerian languages our users actually speak.
 
 Methodology: [`docs/BENCHMARK.md`](docs/BENCHMARK.md) · Results:
 [`benchmark/report/REPORT.md`](benchmark/report/REPORT.md)

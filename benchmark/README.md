@@ -17,9 +17,10 @@ to pick Kare's STT provider on the axis that actually counts.
   language's Code-Mixing Index range (seed `20260915`). Frozen to
   [`frozen_manifest.jsonl`](frozen_manifest.jsonl) so the exact test set is
   reproducible; raw audio is not committed.
-- **Models** — Sahara (Intron), Groq `whisper-large-v3`, Groq
-  `whisper-large-v3-turbo`, `faster-whisper base` (local CPU), OpenAI
-  `gpt-4o-transcribe`. Any model whose API key is absent is skipped.
+- **Models (5)** — Sahara (Intron), Groq `whisper-large-v3`, Groq
+  `whisper-large-v3-turbo`, `faster-whisper tiny` (local CPU), OpenAI
+  `gpt-4o-transcribe`. Any model whose API key is absent is skipped, so a run
+  needs `SAHARA_API_KEY`, `GROQ_API_KEY` and `OPENAI_API_KEY` for the full set.
 - **Metrics** — WER/CER (two normalisation levels), medical-term recall,
   number/dosage recall, Code-Mixing-Index error, switch-point count error,
   English-token recall/precision, real-time factor, cost per audio-minute.
