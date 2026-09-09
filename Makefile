@@ -1,4 +1,5 @@
-.PHONY: help install dev test lint fmt migrate makemigration seed seed-wipe run clean
+.PHONY: help install dev test lint fmt migrate makemigration seed seed-wipe run clean \
+        bench-install bench-data bench-subset bench-run bench-report benchmark
 
 VENV ?= .venv
 PY   := $(VENV)/bin/python
@@ -38,3 +39,22 @@ run:  ## Run the dev server on :8000
 
 clean:
 	rm -rf $(VENV) .pytest_cache .ruff_cache **/__pycache__
+
+# ── benchmark ────────────────────────────────────────────────────────────
+bench-install:  ## Install the benchmark-only deps (datasets, jiwer, faster-whisper, ...)
+	$(PIP) -r requirements-benchmark.txt
+
+bench-data:  ## Download AfriSwitchCare parquet (needs HF_TOKEN + gated access)
+	$(PY) -m benchmark.download_data
+
+bench-subset:  ## Freeze the stratified test subset -> benchmark/frozen_manifest.jsonl
+	$(PY) -m benchmark.subset
+
+bench-run:  ## Transcribe the frozen subset with every model we have keys for
+	$(PY) -m benchmark.run
+
+bench-report:  ## Build benchmark/report/REPORT.md + charts from results/
+	$(PY) -m benchmark.report
+
+benchmark: bench-subset bench-run bench-report  ## Full pipeline (assumes deps + data)
+	@echo "benchmark/report/REPORT.md is ready"

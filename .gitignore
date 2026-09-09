@@ -47,10 +47,13 @@ medical_assistant.db
 dev.db
 *.sqlite3
 
-# Benchmark data / artifacts (large, downloaded on demand)
+# Benchmark: raw data is large + downloaded on demand; results/report are
+# committed only once a full run (incl. Sahara) completes.
 benchmark/data/
 benchmark/_runs/
 benchmark/.cache/
+benchmark/results/
+benchmark/report/
 
 # Node
 node_modules/
