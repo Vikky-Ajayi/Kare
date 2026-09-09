@@ -11,7 +11,6 @@ import uuid
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.config import settings
 from app.database import get_db
 from app.middleware.auth_middleware import get_current_patient_user
 from app.models import ImageAnalysis, User
@@ -82,7 +81,8 @@ async def analyze_medical_image(
             detail="Image appears to be empty or corrupted.",
         )
 
-    # Run AI analysis
+    # Run AI analysis. The image itself is not persisted — only the analysis —
+    # so nothing sensitive is stored and no object store is needed.
     try:
         result = await analyze_image(contents, image_type=image_type)
     except Exception as e:
@@ -90,26 +90,6 @@ async def analyze_medical_image(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Image analysis failed: {str(e)}",
         )
-
-    # Upload image to Supabase Storage
-    image_url = ""
-    try:
-        from supabase import create_client
-        supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-
-        analysis_id = uuid.uuid4()
-        ext = file.filename.rsplit(".", 1)[-1] if file.filename and "." in file.filename else "jpg"
-        file_path = f"analyses/{current_user.id}/{analysis_id}.{ext}"
-
-        supabase.storage.from_(settings.SUPABASE_BUCKET).upload(
-            path=file_path,
-            file=contents,
-            file_options={"content-type": file.content_type, "upsert": "true"},
-        )
-        image_url = supabase.storage.from_(settings.SUPABASE_BUCKET).get_public_url(file_path)
-    except Exception:
-        # Storage failure is non-critical — analysis still succeeds
-        image_url = ""
 
     # Build confidence disclaimer
     confidence = result.get("confidence", "low")
@@ -122,7 +102,7 @@ async def analyze_medical_image(
     # Save analysis record to DB
     analysis_record = ImageAnalysis(
         patient_id=current_user.patient.id,
-        image_url=image_url,
+        image_url="",
         image_type=image_type,
         analysis_result=str(result.get("medical_observations", [])),
         structured_result=result,
