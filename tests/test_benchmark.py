@@ -176,5 +176,12 @@ def test_pipeline_end_to_end(tmp_path, monkeypatch):
     scored = run.score_model("fake", manifest_rows, hyps)
     assert len(scored) == 2
     assert all(s["wer"] == 0.0 for s in scored)
-    summary = run.summarise({"fake": scored})
+    summary = run.summarise({"fake": scored}, {"fake": hyps}, seg_total=len(manifest_rows))
     assert summary["models"]["fake"]["overall"]["wer"] == 0.0
+    assert summary["models"]["fake"]["complete"] is True
+    assert summary["models"]["fake"]["segments_ok"] == 2
+
+    # a model that only managed a fraction of the manifest is held out
+    partial = run.summarise({"fake": scored}, {"fake": dict(list(hyps.items())[:1])},
+                            seg_total=10)
+    assert partial["models"]["fake"]["complete"] is False

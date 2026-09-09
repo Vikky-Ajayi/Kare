@@ -38,6 +38,17 @@ def _label(mid: str) -> str:
     return MODELS.get(mid, {}).get("label", mid)
 
 
+def _ranked(summary: dict, *, complete_only: bool = True) -> list[tuple[str, dict]]:
+    items = summary["models"].items()
+    if complete_only:
+        items = [(k, v) for k, v in items if v.get("complete", True)]
+    return sorted(items, key=lambda kv: kv[1]["overall"]["wer"])
+
+
+def _incomplete(summary: dict) -> list[tuple[str, dict]]:
+    return [(k, v) for k, v in summary["models"].items() if not v.get("complete", True)]
+
+
 def _pct(x: float | None, nd: int = 1) -> str:
     return "—" if x is None else f"{x * 100:.{nd}f}"
 
@@ -58,9 +69,9 @@ def _mpl():
 
 def chart_wer_by_language(summary: dict) -> None:
     plt = _mpl()
-    models = list(summary["models"])
+    models = [mid for mid, _ in _ranked(summary)]
     fig, ax = plt.subplots(figsize=(8, 4))
-    w = 0.8 / len(models)
+    w = 0.8 / max(len(models), 1)
     for k, mid in enumerate(models):
         bl = summary["models"][mid]["by_language"]
         ys = [bl.get(lang, {}).get("wer", 0) * 100 for lang in LANG_ORDER]
@@ -80,7 +91,7 @@ def chart_wer_by_cmi(summary: dict) -> None:
     plt = _mpl()
     fig, ax = plt.subplots(figsize=(7, 4))
     order = ["low", "mid", "high"]
-    for mid in summary["models"]:
+    for mid, _m in _ranked(summary):
         bc = summary["models"][mid]["by_cmi_bucket"]
         ys = [bc.get(b, {}).get("wer", None) for b in order]
         xs = [i for i, y in enumerate(ys) if y is not None]
@@ -98,8 +109,7 @@ def chart_wer_by_cmi(summary: dict) -> None:
 def chart_cost_accuracy(summary: dict) -> None:
     plt = _mpl()
     fig, ax = plt.subplots(figsize=(7, 4.5))
-    for mid in summary["models"]:
-        m = summary["models"][mid]
+    for mid, m in _ranked(summary):
         wer = m["overall"]["wer"] * 100
         ppm = m.get("usd_per_audio_min")
         x = ppm if ppm else 0.0002            # place "free"/"n/p" at the left edge
@@ -118,7 +128,7 @@ def chart_cost_accuracy(summary: dict) -> None:
 def chart_keyterm_recall(summary: dict) -> None:
     plt = _mpl()
     fig, ax = plt.subplots(figsize=(7, 4))
-    mids = list(summary["models"])
+    mids = [mid for mid, _ in _ranked(summary)]
     kt = [(summary["models"][m]["overall"].get("keyterm_recall") or 0) * 100 for m in mids]
     nr = [(summary["models"][m]["overall"].get("number_recall") or 0) * 100 for m in mids]
     x = range(len(mids))
@@ -140,23 +150,22 @@ def table_overall(summary: dict) -> str:
         "| Model | WER | WER (norm) | CER | Med-term recall | Number recall | CMI err | Switch err | RTF | $/audio-min |",
         "|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|",
     ]
-    ranked = sorted(summary["models"].items(), key=lambda kv: kv[1]["overall"]["wer"])
-    for mid, m in ranked:
+    for mid, m in _ranked(summary):
         o = m["overall"]
         ppm = m.get("usd_per_audio_min")
         rows.append(
             f"| {_label(mid)} | {_pct(o['wer'])} | {_pct(o['wer_strict'])} | {_pct(o['cer'])} "
             f"| {_pct(o.get('keyterm_recall'))} | {_pct(o.get('number_recall'))} "
-            f"| {_fnum(o.get('cmi_abs_err'))} | {_fnum(o.get('switch_count_err'), 2)} "
+            f"| {_fnum(o.get('cmi_abs_err'))} | {_fnum(o.get('switch_count_err'), 1)} "
             f"| {_fnum(m.get('rtf'), 2)} | {'n/p' if ppm is None else f'${ppm:.4f}'} |"
         )
     return "\n".join(rows)
 
 
 def table_by_language(summary: dict) -> str:
-    rows = ["| Model | " + " | ".join(x.title() for x in LANG_ORDER) + " | in-family avg | Swahili Δ |",
+    rows = ["| Model | " + " | ".join(x.title() for x in LANG_ORDER) + " | Nigerian avg | Swahili Δ |",
             "|---|" + "--:|" * (len(LANG_ORDER) + 2)]
-    for mid, m in sorted(summary["models"].items(), key=lambda kv: kv[1]["overall"]["wer"]):
+    for mid, m in _ranked(summary):
         bl = m["by_language"]
         cells = [_pct(bl.get(x, {}).get("wer")) for x in LANG_ORDER]
         infam = [bl[x]["wer"] for x in LANG_ORDER[:-1] if x in bl]
@@ -171,13 +180,37 @@ def table_by_language(summary: dict) -> str:
 def table_cmi(summary: dict) -> str:
     rows = ["| Model | low CMI (<15) | mid (15–30) | high (≥30) | high − low |",
             "|---|--:|--:|--:|--:|"]
-    for mid, m in sorted(summary["models"].items(), key=lambda kv: kv[1]["overall"]["wer"]):
+    for mid, m in _ranked(summary):
         bc = m["by_cmi_bucket"]
         lo, mi, hi = (bc.get(b, {}).get("wer") for b in ("low", "mid", "high"))
         d = (hi - lo) if (hi is not None and lo is not None) else None
         rows.append(f"| {_label(mid)} | {_pct(lo)} | {_pct(mi)} | {_pct(hi)} | "
                     f"{'—' if d is None else f'{d*100:+.1f}'} |")
     return "\n".join(rows)
+
+
+def table_incomplete(summary: dict) -> str:
+    inc = _incomplete(summary)
+    if not inc:
+        return ""
+    lines = [
+        "\n## Models with incomplete runs\n",
+        "These did **not** transcribe enough of the subset to be scored fairly, "
+        "so they are held out of the ranking and charts above. Their partial "
+        "numbers are shown only for transparency.\n",
+        "| Model | segments OK | why | partial WER (n) |",
+        "|---|--:|---|--:|",
+    ]
+    why = {
+        "sahara": "Intron API balance exhausted mid-run — both the sync and "
+                  "streaming STT endpoints returned *insufficient balance / "
+                  "credits exhausted*. Awaiting a credit top-up to complete.",
+    }
+    for mid, m in inc:
+        ok, tot = m.get("segments_ok", 0), m.get("segments_total", 0)
+        lines.append(f"| {_label(mid)} | {ok}/{tot} | {why.get(mid, 'run did not complete')} "
+                     f"| {_pct(m['overall'].get('wer'))} ({m['overall'].get('clips', 0)}) |")
+    return "\n".join(lines)
 
 
 def _manifest_refs() -> dict[str, dict]:
@@ -196,9 +229,9 @@ def error_samples(scores: dict[str, list[dict]]) -> str:
            "First ~45 words of one conversation per language, all models. "
            "`[[EN]]…[[/EN]]` spans in the reference mark the human code-switch annotation "
            "(stripped in the excerpt); the English words are what a clinician needs.\n"]
-    any_model = next(iter(scores))
+    ref_model = max(scores, key=lambda m: len(scores[m]))   # the most-complete model
     for lang in LANG_ORDER:
-        conv = next((s for s in scores[any_model] if s["language"] == lang), None)
+        conv = next((s for s in scores[ref_model] if s["language"] == lang), None)
         if not conv:
             continue
         ref = refs.get(conv["conv_id"], {})
@@ -208,6 +241,9 @@ def error_samples(scores: dict[str, list[dict]]) -> str:
         for mid in scores:
             c = next((s for s in scores[mid] if s["conv_id"] == conv["conv_id"]), None)
             if not c:
+                continue
+            if not c.get("hypothesis", "").strip():
+                out.append(f"- **{_label(mid)}** · *(no transcript — see incomplete-runs note)*")
                 continue
             out.append(f"- **{_label(mid)}** (WER {c['wer'] * 100:.0f}, "
                        f"keyterm {(_safe(c.get('keyterm_recall')) * 100):.0f}) · "
@@ -233,10 +269,25 @@ def main() -> int:
     chart_cost_accuracy(summary)
     chart_keyterm_recall(summary)
 
-    ranked = sorted(summary["models"].items(), key=lambda kv: kv[1]["overall"]["wer"])
-    winner = _label(ranked[0][0])
-    n_frozen = len(scores[ranked[0][0]])
+    ranked = _ranked(summary)
+    incomplete = _incomplete(summary)
+    any_scores = next(iter(scores.values()))
+    n_frozen = len(any_scores)
     seed_note = "SMOKE RUN" if meta.get("limit") else "seed 20260915"
+
+    if not ranked:
+        winner_line = ("**No model completed a full run yet** — see *Models with "
+                       "incomplete runs* below.")
+    else:
+        winner = _label(ranked[0][0])
+        winner_line = (
+            f"**Lowest word error rate on this set: {winner}.** "
+            + ("But " if not incomplete else
+               f"Note the required Sahara run is incomplete ({_incomplete(summary)[0][1]['segments_ok']}"
+               f"/{_incomplete(summary)[0][1]['segments_total']} segments — API balance) so this is a "
+               "comparison *among the alternatives*, pending a Sahara top-up. ")
+            + "Cost, latency and clinical-term recall pull in different directions — full picture below."
+        )
 
     md = f"""# Kare · code-switching ASR benchmark
 
@@ -259,12 +310,12 @@ none of Kare's users speak; it shows whether a model has learned West-African
 speech or merely memorised it). The exact clips are frozen in
 [`frozen_manifest.jsonl`](../frozen_manifest.jsonl) ({seed_note}).
 
-**Verdict: {winner}** has the lowest word error rate on this set. Full picture
-below — cost, latency and clinical-term recall pull in different directions.
+{winner_line}
 
 ## Headline numbers
 
 {table_overall(summary)}
+{table_incomplete(summary)}
 
 - **WER** — light normalisation (lower-case, punctuation & speaker tags removed).
 - **WER (norm)** — additionally spells out digits and unifies a few spelling
@@ -357,10 +408,10 @@ def _cost_table(summary: dict) -> str:
         "sahara": "clinical model; per-minute price not published",
         "groq-whisper-v3": "free tier rate-limited; price shown is paid tier",
         "groq-whisper-v3-turbo": "fastest hosted option",
-        "faster-whisper-base": "runs on a CPU laptop, no network",
+        "faster-whisper-tiny": "runs on a CPU laptop, no network",
         "openai-gpt4o-transcribe": "frontier closed model",
     }
-    for mid, m in sorted(summary["models"].items(), key=lambda kv: kv[1]["overall"]["wer"]):
+    for mid, m in _ranked(summary):
         rc = m.get("run_cost_usd")
         rows.append(f"| {_label(mid)} | {m['audio_minutes']} | {m['latency_minutes']} "
                     f"| {_fnum(m.get('rtf'), 2)} | {'—' if rc is None else f'${rc:.2f}'} "

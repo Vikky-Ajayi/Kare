@@ -269,6 +269,8 @@ class Score:
     hyp_words: int = 0
     ref_chars: int = 0
     char_edits: int = 0
+    ref_words_strict: int = 0
+    word_edits_strict: int = 0
     wer: float = 0.0
     cer: float = 0.0
     wer_strict: float = 0.0
@@ -316,7 +318,9 @@ def score(reference_tagged: str, hypothesis: str, *, cmi_gold: float | None = No
 
     rs, hs = normalize_strict(ref_plain).split(), normalize_strict(hypothesis).split()
     al_s = _align(rs, hs)
-    s.wer_strict = (al_s.sub + al_s.ins + al_s.dele) / max(len(rs), 1)
+    s.ref_words_strict = len(rs)
+    s.word_edits_strict = al_s.sub + al_s.ins + al_s.dele
+    s.wer_strict = s.word_edits_strict / max(len(rs), 1)
 
     # code-switching ------------------------------------------------------
     # cmi_abs_err / switch_count_err compare the SAME estimator (our English
@@ -384,6 +388,8 @@ def aggregate(scores: list[Score]) -> dict:
     tot_err = sum(s.sub + s.ins + s.dele for s in scores)
     tot_ref_chars = sum(s.ref_chars for s in scores) or 1
     tot_char_edits = sum(s.char_edits for s in scores)
+    tot_ref_strict = sum(s.ref_words_strict for s in scores) or 1
+    tot_edits_strict = sum(s.word_edits_strict for s in scores)
     kt = [s.keyterm_recall for s in scores if s.keyterm_recall is not None]
     nr = [s.number_recall for s in scores if s.number_recall is not None]
     gold = [s.cmi_gold for s in scores if s.cmi_gold is not None]
@@ -393,7 +399,7 @@ def aggregate(scores: list[Score]) -> dict:
         "wer": tot_err / tot_ref,
         "wer_clip_mean": sum(s.wer for s in scores) / n,
         "wer_clip_median": sorted(s.wer for s in scores)[n // 2],
-        "wer_strict": sum(s.wer_strict for s in scores) / n,
+        "wer_strict": tot_edits_strict / tot_ref_strict,
         "cer": tot_char_edits / tot_ref_chars,
         "cmi_gold": (sum(gold) / len(gold)) if gold else None,
         "cmi_ref": sum(s.cmi_ref for s in scores) / n,

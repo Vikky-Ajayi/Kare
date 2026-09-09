@@ -150,11 +150,19 @@ def score_model(model_id: str, rows: list[dict], hyps: dict[str, dict]) -> list[
     return out
 
 
-def summarise(all_scores: dict[str, list[dict]]) -> dict:
+def summarise(all_scores: dict[str, list[dict]], hyps: dict[str, dict[str, dict]],
+              *, seg_total: int = 0) -> dict:
     summary: dict = {"models": {}}
     for model_id, scores in all_scores.items():
         objs = [Score(**{k: v for k, v in s.items() if k in Score.__annotations__}) for s in scores]
         overall = aggregate(objs)
+        seg_hyps = hyps.get(model_id, {})
+        total = seg_total or len(seg_hyps)
+        seg_ok = sum(1 for h in seg_hyps.values() if h.get("ok"))
+        # a model that couldn't transcribe most of the *manifest* isn't a real
+        # result — the report shows it separately and does not rank it.
+        complete = total > 0 and seg_ok / total >= 0.8
+        total_for_report = total
         audio_min = sum(s["audio_s"] for s in scores) / 60
         lat_min = sum(s["latency_s"] for s in scores) / 60
         ppm = PRICE_PER_MIN.get(model_id)
@@ -172,6 +180,9 @@ def summarise(all_scores: dict[str, list[dict]]) -> dict:
             "overall": overall,
             "by_language": by_lang,
             "by_cmi_bucket": by_cmi,
+            "segments_ok": seg_ok,
+            "segments_total": total_for_report,
+            "complete": complete,
             "audio_minutes": round(audio_min, 1),
             "latency_minutes": round(lat_min, 1),
             "rtf": round(lat_min / audio_min, 3) if audio_min else None,
@@ -196,6 +207,7 @@ def main() -> int:
     print(f"models: {', '.join(models)}\n")
 
     all_scores: dict[str, list[dict]] = {}
+    all_hyps: dict[str, dict[str, dict]] = {}
     for model_id in models:
         print(f"== {model_id} ==")
         t0 = time.perf_counter()
@@ -203,14 +215,17 @@ def main() -> int:
             hyps = transcribe_all(model_id, rows, limit=args.limit)
         else:
             hyps = _load_hyps(model_id)
+        all_hyps[model_id] = hyps
         all_scores[model_id] = score_model(model_id, rows, hyps)
+        ok = sum(1 for h in hyps.values() if h.get("ok"))
         el = aggregate([Score(**{k: v for k, v in s.items() if k in Score.__annotations__})
                         for s in all_scores[model_id]])
-        print(f"  WER {el.get('wer', 0):.3f} · CER {el.get('cer', 0):.3f} · "
+        print(f"  {ok}/{len(hyps)} segments · WER {el.get('wer', 0):.3f} · "
+              f"CER {el.get('cer', 0):.3f} · "
               f"keyterm-recall {el.get('keyterm_recall') or 0:.3f} · "
               f"{time.perf_counter() - t0:.0f}s\n")
 
-    summary = summarise(all_scores)
+    summary = summarise(all_scores, all_hyps, seg_total=len(rows))
     (RESULTS_DIR / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False))
     (RESULTS_DIR / "run_meta.json").write_text(json.dumps({
         "ran_at": datetime.now(UTC).isoformat(),
