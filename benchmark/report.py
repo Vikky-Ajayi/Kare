@@ -282,11 +282,11 @@ def main() -> int:
         winner = _label(ranked[0][0])
         winner_line = (
             f"**Lowest word error rate on this set: {winner}.** "
-            + ("But " if not incomplete else
+            + ("" if not incomplete else
                f"Note the required Sahara run is incomplete ({_incomplete(summary)[0][1]['segments_ok']}"
                f"/{_incomplete(summary)[0][1]['segments_total']} segments — API balance) so this is a "
                "comparison *among the alternatives*, pending a Sahara top-up. ")
-            + "Cost, latency and clinical-term recall pull in different directions — full picture below."
+            + "But cost, latency and clinical-term recall pull in different directions — full picture below."
         )
 
     md = f"""# Kare · code-switching ASR benchmark

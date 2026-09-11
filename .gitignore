@@ -47,13 +47,12 @@ medical_assistant.db
 dev.db
 *.sqlite3
 
-# Benchmark: raw data is large + downloaded on demand; results/report are
-# committed only once a full run (incl. Sahara) completes.
+# Benchmark: raw audio is large + downloaded on demand. results/ and report/
+# ARE committed (transcripts + scores + the rendered REPORT.md) — that's the
+# submission's evidence trail.
 benchmark/data/
 benchmark/_runs/
 benchmark/.cache/
-benchmark/results/
-benchmark/report/
 
 # Node
 node_modules/
