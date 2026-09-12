@@ -17,5 +17,8 @@ faster-whisper>=1.0,<2
 huggingface-hub>=0.25
 
 # NCAIR/N-ATLaS: 3 per-language Whisper-small fine-tunes, run locally.
-torch>=2.2,<3           # CPU wheel is fine — no CUDA/MPS build needed here
+# transformers>=5 requires torch>=2.5; a fresh torch download timed out
+# repeatedly on this network, so pin transformers below that floor instead
+# of re-pulling a bigger torch wheel.
+torch>=2.2,<3            # CPU wheel is fine — no CUDA/MPS build needed here
 transformers>=4.40,<5

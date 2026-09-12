@@ -1,8 +1,15 @@
 """NCAIR/N-ATLaS — Nigeria's national ASR effort (NITDA + NCAIR + Awarri).
 
 Not one model: three separate Whisper-small (244M) fine-tunes, one per
-language, each gated on HF (auto-approved once you accept the terms on the
-model page). There is no Pidgin or Swahili checkpoint — `config.MODELS
+language, each gated on HF ("auto" gate — instant once *you personally*
+click "Agree and access repository" on each page while logged in as the
+account behind HF_TOKEN; listing the repo's files with that token succeeds
+even before you've clicked through, which is a red herring — actually
+downloading a file 403s until you do:
+  https://huggingface.co/NCAIR1/Yoruba-ASR
+  https://huggingface.co/NCAIR1/Hausa-ASR
+  https://huggingface.co/NCAIR1/Igbo-ASR
+There is no Pidgin or Swahili checkpoint — `config.MODELS
 ["ncair-atlas"]["languages"]` declares that restriction and `run.py` scores
 this model only within it, rather than treating the other two languages as
 failures.
