@@ -1,0 +1,17 @@
+{
+  "ran_at": "2026-09-12T22:02:49.835555+00:00",
+  "corpus": "switch",
+  "models": [
+    "sahara",
+    "groq-whisper-v3",
+    "groq-whisper-v3-turbo",
+    "faster-whisper-tiny"
+  ],
+  "n_conversations": 125,
+  "n_segments": 125,
+  "audio_minutes": 25.9,
+  "python": "3.12.14",
+  "platform": "macOS-13.4-x86_64-i386-64bit",
+  "dataset": "intronhealth/AfriSwitch (test split)",
+  "limit": null
+}

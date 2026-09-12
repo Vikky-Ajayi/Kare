@@ -40,10 +40,26 @@ for _d in (DATA_DIR, AUDIO_DIR, SEG_DIR, RESULTS_DIR, REPORT_DIR):
 # exactly Kare's use case, so it is the primary benchmark.
 CARE_REPO = "intronhealth/AfriSwitchCare"
 
-# AfriSwitch (16.6 k short utterances, 14 languages) is the secondary set.
-# It is access-gated behind manual approval; the harness uses it only if the
-# parquet files are already present under data/afriswitch/.
+# AfriSwitch (16.6 k short utterances, 14 languages) is the secondary,
+# *general-domain* corpus — same team/annotation convention as AfriSwitchCare
+# (transcription_tagged with [[EN]] spans, cmi, num_switch_points) but no
+# clinical script. Used as a generalisation check: does a model's edge on the
+# clinical set hold on ordinary speech, or was it fitted to that domain? It is
+# access-gated behind manual approval; the harness uses it only if the
+# parquet files are already present under data/afriswitch/ (see
+# `benchmark/subset_switch.py` / `make bench-subset-switch`).
 SWITCH_REPO = "intronhealth/AfriSwitch"
+SWITCH_PARQUET_DIR = DATA_DIR / "afriswitch" / "data"
+SWITCH_MANIFEST = ROOT / "frozen_manifest_switch.jsonl"     # committed, like MANIFEST
+SWITCH_RESULTS_DIR = ROOT / "results_switch"                # committed
+SWITCH_REPORT_DIR = ROOT / "report_switch"                  # committed
+# Utterances run a few seconds each (vs. AfriSwitchCare's multi-minute
+# conversations), so we take more of them per language for a comparable
+# amount of test audio without needing the 110s segmentation pass at all.
+UTTS_PER_LANG = 25
+
+for _d in (SWITCH_RESULTS_DIR, SWITCH_REPORT_DIR):
+    _d.mkdir(parents=True, exist_ok=True)
 
 # Kare speaks en / yo / ha / ig / pcm. We benchmark the four non-English
 # matrix languages, plus Swahili as an out-of-family control (a Bantu language
@@ -114,6 +130,19 @@ MODELS: dict[str, dict] = {
         "kind": "api",
         "params": {"model": "gpt-4o-transcribe"},
     },
+    # Nigeria's national ASR effort (NCAIR/NITDA + Awarri, "N-ATLaS"): three
+    # separate Whisper-small fine-tunes, one per language, gated on HF (auto-
+    # approved). No Pidgin or Swahili checkpoint exists, so this is the one
+    # model with a restricted `languages` set — run.py scores and ranks it
+    # only within that set rather than penalising it for languages it was
+    # never trained on. Local CPU inference (transformers, no API key).
+    "ncair-atlas": {
+        "adapter": "benchmark.models.ncair_atlas:NCAIRAdapter",
+        "label": "NCAIR/N-ATLaS (Whisper-small, per-language)",
+        "key_env": None,
+        "kind": "local",
+        "languages": ["yoruba", "hausa", "igbo"],
+    },
 }
 
 # Rough public list prices, USD per minute of audio, for the cost column.
@@ -124,6 +153,7 @@ PRICE_PER_MIN = {
     "groq-whisper-v3-turbo": 0.04 / 60,     # $0.04 / hour
     "faster-whisper-tiny": 0.0,             # local, electricity only
     "openai-gpt4o-transcribe": 0.006,       # $0.006 / minute
+    "ncair-atlas": 0.0,                     # local, electricity only
 }
 
 # faster-whisper fetches its weights from the HF hub on first use. In some

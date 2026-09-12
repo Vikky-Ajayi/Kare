@@ -255,6 +255,23 @@ def _safe(x) -> float:
     return 0.0 if x is None else x
 
 
+def language_scope_note(summary: dict) -> str:
+    """A model with a restricted `languages` set (e.g. NCAIR/N-ATLaS, which
+    has no Pidgin or Swahili checkpoint) is scored and ranked only within
+    that set — its headline WER is not penalised for languages it was never
+    trained on, but that means it isn't a like-for-like comparison on the
+    full 5-language set either. Say so once, plainly."""
+    restricted = [(mid, MODELS[mid]["languages"]) for mid in summary["models"]
+                  if MODELS.get(mid, {}).get("languages")]
+    if not restricted:
+        return ""
+    bits = "; ".join(f"**{_label(mid)}** — {', '.join(x.title() for x in langs)} only"
+                      for mid, langs in restricted)
+    return (f"\n*Scored on a restricted language set: {bits}. Its overall/by-language "
+            "numbers above cover only those languages — dashes elsewhere mean "
+            "\"not applicable\", not \"failed\".*\n")
+
+
 def _head(text: str, n: int) -> str:
     toks = normalize(text).split()
     return " ".join(toks[:n]) + (" …" if len(toks) > n else "")
@@ -315,6 +332,7 @@ speech or merely memorised it). The exact clips are frozen in
 ## Headline numbers
 
 {table_overall(summary)}
+{language_scope_note(summary)}
 {table_incomplete(summary)}
 
 - **WER** — light normalisation (lower-case, punctuation & speaker tags removed).

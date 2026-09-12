@@ -1,5 +1,6 @@
 .PHONY: help install dev test lint fmt migrate makemigration seed seed-wipe run clean \
-        bench-install bench-data bench-subset bench-run bench-report benchmark
+        bench-install bench-data bench-subset bench-run bench-report benchmark \
+        bench-data-switch bench-subset-switch bench-run-switch bench-report-switch benchmark-switch benchmark-full
 
 VENV ?= .venv
 PY   := $(VENV)/bin/python
@@ -58,3 +59,22 @@ bench-report:  ## Build benchmark/report/REPORT.md + charts from results/
 
 benchmark: bench-subset bench-run bench-report  ## Full pipeline (assumes deps + data)
 	@echo "benchmark/report/REPORT.md is ready"
+
+# ── benchmark: AfriSwitch (broader, non-clinical generalisation check) ─────
+bench-data-switch:  ## Fetch AfriSwitch parquet shards (manual-gated; needs HF_TOKEN)
+	bash benchmark/_fetch_switch.sh
+
+bench-subset-switch:  ## Freeze the AfriSwitch subset -> benchmark/frozen_manifest_switch.jsonl
+	$(PY) -m benchmark.subset_switch
+
+bench-run-switch:  ## Transcribe the AfriSwitch subset with every model we have keys for
+	$(PY) -m benchmark.run --corpus switch
+
+bench-report-switch:  ## Build benchmark/report_switch/REPORT.md from results_switch/
+	$(PY) -m benchmark.report_switch
+
+benchmark-switch: bench-subset-switch bench-run-switch bench-report-switch
+	@echo "benchmark/report_switch/REPORT.md is ready"
+
+benchmark-full: benchmark benchmark-switch  ## Both corpora: clinical primary + generalisation check
+	@echo "both reports ready: benchmark/report/REPORT.md, benchmark/report_switch/REPORT.md"

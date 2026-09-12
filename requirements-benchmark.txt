@@ -1,6 +1,7 @@
 # Benchmark harness only — not installed in the deployed image.
 # Compares Sahara STT against Whisper (Groq), faster-whisper (local),
-# and gpt-4o-transcribe (OpenAI) on the AfriSwitch code-switch datasets.
+# NCAIR/N-ATLaS (local), and gpt-4o-transcribe (OpenAI) on the AfriSwitch
+# code-switch datasets.
 
 python-dotenv>=1.0
 datasets>=3.0,<4
@@ -14,3 +15,7 @@ groq>=0.13,<1
 openai>=1.50,<2
 faster-whisper>=1.0,<2
 huggingface-hub>=0.25
+
+# NCAIR/N-ATLaS: 3 per-language Whisper-small fine-tunes, run locally.
+torch>=2.2,<3           # CPU wheel is fine — no CUDA/MPS build needed here
+transformers>=4.40,<5
