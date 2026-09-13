@@ -29,34 +29,32 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-64 h-screen bg-black border-r-2 border-white/10 flex flex-col fixed left-0 top-0 z-50">
-      <div className="p-7 border-b-2 border-white/10 flex items-center gap-4">
-        <div className="w-11 h-11 bg-primary flex items-center justify-center border-4 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
-          <Activity size={24} className="text-black" />
+    <aside className="w-64 h-screen bg-surface border-r border-ink/8 flex flex-col fixed left-0 top-0 z-50">
+      <div className="p-7 flex items-center gap-3.5">
+        <div className="w-11 h-11 bg-ink rounded-2xl flex items-center justify-center">
+          <Activity size={22} className="text-primary" />
         </div>
-        <span className="font-display text-3xl font-bold tracking-tighter uppercase">Kare<span className="text-primary">.</span></span>
+        <span className="font-display text-2xl font-bold text-ink">Kare<span className="text-primary-ink">.</span></span>
       </div>
 
-      <nav className="flex-1 py-8 flex flex-col gap-1 overflow-y-auto">
+      <nav className="flex-1 py-6 px-3 flex flex-col gap-1 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink key={item.path} to={item.path} end={(item as any).end}
             className={({ isActive }) => cn(
-              'px-8 py-4 flex items-center gap-5 transition-all border-l-4 group',
-              isActive ? 'bg-primary/10 border-primary text-primary' : 'border-transparent text-white/25 hover:text-white hover:bg-white/5',
+              'px-5 py-3.5 flex items-center gap-4 rounded-2xl transition-all group',
+              isActive ? 'bg-primary text-primary-ink font-semibold' : 'text-ink/45 hover:text-ink hover:bg-ink/5',
             )}>
-            <item.icon size={20} className="group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em]">{item.label}</span>
+            <item.icon size={19} className="group-hover:scale-110 transition-transform flex-shrink-0" />
+            <span className="text-sm font-medium">{item.label}</span>
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-6 border-t-2 border-white/10">
+      <div className="p-4">
         <motion.button whileHover={{ x: 4 }} whileTap={{ scale: 0.95 }} onClick={handleLogout}
-          className="w-full flex items-center gap-4 text-white/20 hover:text-red-500 transition-all group">
-          <div className="w-10 h-10 border-2 border-white/10 flex items-center justify-center group-hover:border-red-500/50 transition-all">
-            <LogOut size={18} />
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.25em]">Logout</span>
+          className="w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl text-ink/35 hover:text-ink hover:bg-ink/5 transition-all group">
+          <LogOut size={19} />
+          <span className="text-sm font-medium">Logout</span>
         </motion.button>
       </div>
     </aside>

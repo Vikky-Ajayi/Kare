@@ -66,22 +66,22 @@ const VoiceDoctor = () => {
       {!consented && <ConsentGate onAccept={() => setConsented(true)} />}
       <div className="flex flex-wrap justify-between items-end gap-4">
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-1">AI Consultation</div>
-          <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tighter uppercase">
-            {resumeConv ? 'Continuing' : 'Voice Doctor'}<span className="text-primary">.</span>
+          <div className="text-xs font-semibold text-primary-ink/70 mb-1">AI Consultation</div>
+          <h1 className="text-3xl md:text-4xl">
+            {resumeConv ? 'Continuing' : 'Voice Doctor'}<span className="text-primary-ink">.</span>
           </h1>
         </div>
         <div className="flex items-center gap-3">
           <select value={language} onChange={(e) => setLanguage(e.target.value as LangCode)}
-            className="text-[10px] font-bold uppercase tracking-widest bg-surface border-2 border-white/10 px-4 py-3 outline-none focus:border-primary text-white">
+            className="text-sm font-medium bg-surface border-2 border-ink/10 rounded-2xl px-4 py-3 outline-none focus:border-primary text-ink">
             {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
           </select>
           <button onClick={() => setMuted(!muted)}
-            className="w-12 h-12 border-2 border-white/10 flex items-center justify-center text-white/40 hover:text-primary hover:border-primary transition-all">
+            className="w-12 h-12 rounded-full bg-surface border-2 border-ink/10 flex items-center justify-center text-ink/40 hover:text-primary-ink hover:border-primary transition-all">
             {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
           </button>
           <button onClick={openNotes}
-            className="w-12 h-12 border-2 border-white/10 flex items-center justify-center text-white/40 hover:text-primary hover:border-primary transition-all" title="Doctor's notes">
+            className="w-12 h-12 rounded-full bg-surface border-2 border-ink/10 flex items-center justify-center text-ink/40 hover:text-primary-ink hover:border-primary transition-all" title="Doctor's notes">
             <FileText size={18} />
           </button>
         </div>
@@ -89,55 +89,57 @@ const VoiceDoctor = () => {
 
       {v.escalated && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-red-500 text-black px-5 py-3 flex items-center gap-3 border-2 border-black">
+          className="bg-red-600 text-white rounded-2xl px-5 py-4 flex items-center gap-3">
           <AlertTriangle size={20} className="flex-shrink-0" />
-          <p className="text-[11px] font-bold uppercase tracking-widest">This may be an emergency — follow the guidance above and get help now.</p>
+          <p className="text-sm font-semibold">This may be an emergency — follow the guidance above and get help now.</p>
         </motion.div>
       )}
 
       <div className="flex-1 grid lg:grid-cols-3 gap-5 min-h-0">
-        <div className="lg:col-span-2 brutalist-card bg-surface border-2 border-white/10 flex flex-col overflow-hidden min-h-0">
+        <div className="lg:col-span-2 card !p-0 flex flex-col overflow-hidden min-h-0">
           <div className="flex-1 p-5 md:p-6 overflow-y-auto space-y-5 min-h-0">
             {v.messages.length === 0 && !busy && (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
-                <Stethoscope size={40} className="text-primary mb-4" />
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40 max-w-xs">
+                <div className="w-14 h-14 rounded-2xl bg-mint flex items-center justify-center mb-4">
+                  <Stethoscope size={26} className="text-ink" />
+                </div>
+                <p className="text-sm font-medium text-ink/40 max-w-xs">
                   Speak or type how you're feeling. Kare has read your file.
                 </p>
               </div>
             )}
             {v.messages.map((m) => (
               <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className={cn('flex gap-4', m.role === 'user' ? 'flex-row-reverse' : '')}>
-                <div className={cn('w-10 h-10 flex-shrink-0 flex items-center justify-center border-2',
-                  m.role === 'user' ? 'bg-primary border-black text-black' : 'bg-black border-primary text-primary')}>
-                  {m.role === 'user' ? <UserIcon size={18} /> : <Stethoscope size={18} />}
+                className={cn('flex gap-3', m.role === 'user' ? 'flex-row-reverse' : '')}>
+                <div className={cn('w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center',
+                  m.role === 'user' ? 'bg-primary text-primary-ink' : 'bg-mint text-ink')}>
+                  {m.role === 'user' ? <UserIcon size={16} /> : <Stethoscope size={16} />}
                 </div>
-                <div className={cn('px-4 py-3 border-2 text-sm leading-relaxed max-w-[85%]',
-                  m.role === 'user' ? 'bg-white text-black border-white' : 'bg-black border-white/10 text-white/90')}>
+                <div className={cn('px-4 py-3 rounded-2xl text-sm leading-relaxed max-w-[85%]',
+                  m.role === 'user' ? 'bg-primary/25 text-ink rounded-tr-sm' : 'bg-background text-ink/90 rounded-tl-sm')}>
                   {m.content}
                 </div>
               </motion.div>
             ))}
             {v.partial && (
-              <div className="flex gap-4 flex-row-reverse">
-                <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center border-2 bg-primary/40 border-black text-black"><UserIcon size={18} /></div>
-                <div className="px-4 py-3 border-2 border-dashed border-white/20 text-sm text-white/50 italic max-w-[85%]">{v.partial}</div>
+              <div className="flex gap-3 flex-row-reverse">
+                <div className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center bg-primary/40 text-primary-ink"><UserIcon size={16} /></div>
+                <div className="px-4 py-3 rounded-2xl border-2 border-dashed border-ink/15 text-sm text-ink/45 italic max-w-[85%]">{v.partial}</div>
               </div>
             )}
             {busy && (
-              <div className="flex gap-4">
-                <div className="w-10 h-10 flex items-center justify-center border-2 bg-black border-primary text-primary"><Stethoscope size={18} /></div>
-                <div className="px-4 py-3 border-2 border-white/10 bg-black flex items-center gap-2">
-                  <Loader2 size={14} className="animate-spin text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{PHASE_TEXT[v.phase]}</span>
+              <div className="flex gap-3">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center bg-mint text-ink"><Stethoscope size={16} /></div>
+                <div className="px-4 py-3 rounded-2xl bg-background flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin text-primary-ink" />
+                  <span className="text-sm font-medium text-primary-ink">{PHASE_TEXT[v.phase]}</span>
                 </div>
               </div>
             )}
             {v.lastTools.length > 0 && (
-              <div className="flex flex-wrap gap-2 pl-14">
+              <div className="flex flex-wrap gap-2 pl-12">
                 {v.lastTools.filter((t) => TOOL_LABEL[t]).map((t, i) => (
-                  <span key={i} className="text-[9px] font-bold uppercase tracking-widest text-primary/70 border border-primary/30 px-2 py-1 flex items-center gap-1.5">
+                  <span key={i} className="badge bg-sand text-ink/70">
                     <Wrench size={10} /> {TOOL_LABEL[t]}
                   </span>
                 ))}
@@ -146,34 +148,34 @@ const VoiceDoctor = () => {
             <div ref={bottomRef} />
           </div>
 
-          <div className="p-5 bg-black/40 border-t-2 border-white/10 flex gap-3">
+          <div className="p-5 bg-background/60 border-t border-ink/8 flex gap-3">
             <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitText()}
-              placeholder="Type your message…" style={{ textTransform: 'none' }}
-              className="flex-1 bg-black border-2 border-white/10 px-4 py-3 outline-none focus:border-primary text-sm text-white placeholder:text-white/20" />
+              placeholder="Type your message…"
+              className="flex-1 input-field text-sm" />
             <button onClick={submitText} disabled={busy || !text.trim()}
-              className="w-12 h-12 bg-primary text-black flex items-center justify-center border-2 border-black hover:bg-white transition-all disabled:opacity-40">
+              className="w-12 h-12 rounded-full bg-primary text-primary-ink flex items-center justify-center hover:bg-ink hover:text-white transition-all disabled:opacity-40 flex-shrink-0">
               <Send size={18} />
             </button>
           </div>
-          <div className="px-6 py-3 bg-red-500/90 text-black flex items-center gap-3">
+          <div className="px-6 py-3 bg-red-600 text-white flex items-center gap-3 rounded-b-3xl">
             <AlertTriangle size={14} className="flex-shrink-0" />
-            <p className="text-[9px] font-bold uppercase tracking-[0.15em] leading-tight">
+            <p className="text-xs font-medium leading-tight">
               Kare is an assistant, not a replacement for a doctor. In an emergency call your local services.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-center brutalist-card bg-surface border-2 border-white/10 p-8 gap-8">
+        <div className="flex flex-col items-center justify-center card p-8 gap-8">
           <motion.button whileTap={{ scale: 0.95 }}
             onClick={recording ? v.stopListening : v.startListening} disabled={busy}
-            className={cn('w-44 h-44 flex items-center justify-center border-8 border-black transition-all shadow-[10px_10px_0px_0px_rgba(0,0,0,0.3)]',
-              recording ? 'bg-red-500' : 'bg-primary', busy && 'opacity-40 cursor-not-allowed')}>
-            {recording ? <Square size={56} className="text-black" /> : <Mic size={64} className="text-black" />}
+            className={cn('w-40 h-40 rounded-full flex items-center justify-center transition-all shadow-[0_8px_30px_rgba(23,61,48,0.15)]',
+              recording ? 'bg-red-600' : 'bg-primary', busy && 'opacity-40 cursor-not-allowed')}>
+            {recording ? <Square size={48} className="text-white" /> : <Mic size={56} className="text-primary-ink" />}
           </motion.button>
           <div className="text-center">
-            <div className="text-2xl font-display font-bold uppercase tracking-tighter">{PHASE_TEXT[v.phase]}</div>
+            <div className="text-xl font-display font-bold text-ink">{PHASE_TEXT[v.phase]}</div>
             {user?.has_active_pregnancy && (
-              <div className="mt-3 text-[10px] font-bold uppercase tracking-widest text-primary flex items-center justify-center gap-2">
+              <div className="mt-3 badge bg-pink text-ink mx-auto w-fit">
                 <Baby size={12} /> Pregnancy mode
               </div>
             )}
@@ -182,11 +184,11 @@ const VoiceDoctor = () => {
             <div className="flex gap-1.5 h-10 items-center">
               {[...Array(16)].map((_, i) => (
                 <motion.div key={i} animate={{ height: [8, Math.random() * 36 + 8, 8] }}
-                  transition={{ duration: 0.4, repeat: Infinity, delay: i * 0.04 }} className="w-1.5 bg-primary" />
+                  transition={{ duration: 0.4, repeat: Infinity, delay: i * 0.04 }} className="w-1.5 rounded-full bg-primary-ink" />
               ))}
             </div>
           )}
-          {v.error && <p className="text-red-500 text-[10px] font-bold uppercase tracking-widest text-center">{v.error}</p>}
+          {v.error && <p className="text-red-600 text-sm font-medium text-center">{v.error}</p>}
         </div>
       </div>
 
@@ -194,39 +196,39 @@ const VoiceDoctor = () => {
 
       <AnimatePresence>
         {showNotes && notes && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm" onClick={() => setShowNotes(false)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-ink/50 backdrop-blur-sm" onClick={() => setShowNotes(false)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg bg-surface border-4 border-white/10 p-8 max-h-[80vh] overflow-y-auto">
-              <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary mb-1">Kare's file on you</div>
-              <h2 className="text-3xl font-display font-bold uppercase tracking-tighter mb-6">
-                Doctor's Notes<span className="text-primary">.</span>
+              className="w-full max-w-lg card max-h-[80vh] overflow-y-auto">
+              <div className="text-xs font-semibold text-primary-ink/70 mb-1">Kare's file on you</div>
+              <h2 className="text-3xl mb-6">
+                Doctor's notes<span className="text-primary-ink">.</span>
               </h2>
-              <p className="text-[10px] uppercase tracking-widest text-white/40 mb-6">{notes.conversation_count} consultation(s)</p>
+              <p className="text-sm text-ink/40 mb-6">{notes.conversation_count} consultation(s)</p>
               {[
                 ['Recurring complaints', notes.presenting_complaints],
                 ['Previously considered', notes.suspected_conditions],
                 ['Flags to watch', notes.important_flags],
               ].map(([label, items]: any) => items?.length > 0 && (
                 <section key={label} className="mb-5">
-                  <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">{label}</h3>
+                  <h3 className="text-xs font-semibold text-primary-ink/70 mb-2 uppercase tracking-wide">{label}</h3>
                   <ul className="space-y-1">
                     {items.map((s: string, i: number) => (
-                      <li key={i} className="text-xs text-white/60 flex gap-2"><span className="text-primary">›</span> {s}</li>
+                      <li key={i} className="text-sm text-ink/60 flex gap-2"><span className="text-primary-ink">›</span> {s}</li>
                     ))}
                   </ul>
                 </section>
               ))}
               {notes.key_concerns && (
                 <section className="mb-2">
-                  <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">To follow up</h3>
-                  <p className="text-xs text-white/60">{notes.key_concerns}</p>
+                  <h3 className="text-xs font-semibold text-primary-ink/70 mb-2 uppercase tracking-wide">To follow up</h3>
+                  <p className="text-sm text-ink/60">{notes.key_concerns}</p>
                 </section>
               )}
               {notes.last_summary && (
                 <section>
-                  <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">Last session</h3>
-                  <p className="text-xs text-white/60">{notes.last_summary}</p>
+                  <h3 className="text-xs font-semibold text-primary-ink/70 mb-2 uppercase tracking-wide">Last session</h3>
+                  <p className="text-sm text-ink/60">{notes.last_summary}</p>
                 </section>
               )}
             </motion.div>

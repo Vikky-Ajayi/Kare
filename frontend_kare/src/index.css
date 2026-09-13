@@ -1,23 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
 
+/*
+ * Kare visual language — warm fintech-adjacent, after the KreditGlobal
+ * reference (single-page marketing site: deep forest green + cream +
+ * a pastel accent set, pill buttons, soft rounded cards). The reference
+ * has no app screens of its own, so this is the *language* adapted to an
+ * app: light background, dark-green ink, lime as the one "pop" accent
+ * doing the job teal used to do (CTAs, active states, focus rings).
+ */
 @theme {
-  --color-primary: #00FFD1;
-  --color-background: #000000;
-  --color-surface: #111111;
-  --color-charcoal: #1A1A1A;
-  --color-white: #FFFFFF;
+  --color-primary: #C7D94A;       /* lime — the one "press this" accent */
+  --color-primary-ink: #1B3A2E;   /* text/icon color when sitting on primary */
+  --color-ink: #173D30;           /* deep forest green — brand color, dark surfaces, headings */
+  --color-background: #F7F6EE;    /* warm cream page background */
+  --color-surface: #FFFFFF;       /* card background */
+  --color-charcoal: #123028;      /* darkest green — footer/nav-dark sections */
+
+  /* pastel accent set — small badges, step numbers, chart bars. Never
+     large surfaces; they're seasoning, not the base palette. */
+  --color-mint: #CFEBD9;
+  --color-peach: #F5DCC6;
+  --color-lavender: #E6D9F2;
+  --color-pink: #F6D3E1;
+  --color-sand: #EAE0C9;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
+  --font-display: "Baloo 2", "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
   body {
-    @apply bg-background text-white font-sans antialiased selection:bg-primary selection:text-black;
+    @apply bg-background text-ink font-sans antialiased selection:bg-primary selection:text-primary-ink;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-bold tracking-tighter;
+    @apply font-display font-bold tracking-tight text-ink;
     overflow-wrap: break-word;
     word-break: break-word;
     max-width: 100%;
@@ -34,43 +51,55 @@
   p:last-child {
     margin-bottom: 0;
   }
-  
-  /* Custom scrollbar for brutalist look */
+
   ::-webkit-scrollbar {
     width: 8px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-black;
+    @apply bg-background;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-white/10 hover:bg-primary transition-colors;
+    @apply bg-ink/15 hover:bg-primary transition-colors rounded-full;
   }
 }
 
-.glass-card {
-  @apply bg-surface border border-white/10 rounded-none shadow-2xl;
+/* Card — soft, rounded, a hairline border instead of a heavy one. */
+.card {
+  @apply bg-surface border border-ink/8 rounded-3xl p-8 shadow-[0_2px_16px_rgba(23,61,48,0.06)] transition-all;
 }
 
-.brutalist-card {
-  @apply bg-surface border border-white/10 p-8 transition-all hover:border-primary/50;
+.card-hover {
+  @apply hover:border-primary/50 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(23,61,48,0.1)];
 }
 
 .text-huge {
-  @apply text-[12rem] leading-[0.8] font-display font-bold tracking-tighter uppercase;
+  @apply text-[7rem] leading-[0.95] font-display font-bold tracking-tight;
 }
 
 .btn-primary {
-  @apply bg-primary text-black px-8 py-4 font-bold uppercase tracking-widest hover:bg-white transition-all border-2 border-black;
+  @apply inline-flex items-center justify-center gap-2 bg-primary text-primary-ink
+         px-7 py-3.5 rounded-full font-display font-semibold
+         hover:bg-ink hover:text-white transition-all;
 }
 
 .btn-outline {
-  @apply border-2 border-white text-white px-8 py-4 font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all;
+  @apply inline-flex items-center justify-center gap-2 border-2 border-ink text-ink
+         px-7 py-3.5 rounded-full font-display font-semibold
+         hover:bg-ink hover:text-white transition-all;
 }
 
-.brutalist-border {
-  @apply border-2 border-white/10;
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 text-ink/70
+         px-5 py-2.5 rounded-full font-display font-semibold
+         hover:bg-ink/5 hover:text-ink transition-all;
 }
 
-.brutalist-input {
-  @apply bg-black border-2 border-white/10 px-6 py-4 text-xs font-bold uppercase tracking-widest text-white outline-none focus:border-primary transition-all placeholder:text-white/20;
+.input-field {
+  @apply bg-surface border-2 border-ink/10 rounded-2xl px-5 py-3.5 text-sm text-ink
+         outline-none focus:border-primary transition-all placeholder:text-ink/35;
+}
+
+/* Small pill label — the numbered-step / "On track" badge pattern. */
+.badge {
+  @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
 }

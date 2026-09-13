@@ -22,21 +22,23 @@ const ConsentGate = ({ onAccept }: { onAccept: () => void }) => {
 
   const Item = ({ k, children }: { k: 'voice' | 'ai'; children: React.ReactNode }) => (
     <button onClick={() => setChecks((c) => ({ ...c, [k]: !c[k] }))}
-      className="w-full text-left flex gap-3 items-start p-3 border-2 border-white/10 hover:border-primary/40 transition-colors">
-      <div className={`w-5 h-5 flex-shrink-0 border-2 flex items-center justify-center mt-0.5 ${checks[k] ? 'bg-primary border-primary' : 'border-white/20'}`}>
-        {checks[k] && <Check size={12} className="text-black" />}
+      className="w-full text-left flex gap-3 items-start p-4 rounded-2xl border-2 border-ink/10 hover:border-primary transition-colors">
+      <div className={`w-5 h-5 flex-shrink-0 rounded-md border-2 flex items-center justify-center mt-0.5 ${checks[k] ? 'bg-primary border-primary' : 'border-ink/20'}`}>
+        {checks[k] && <Check size={12} className="text-primary-ink" />}
       </div>
-      <span className="text-xs text-white/60 leading-relaxed">{children}</span>
+      <span className="text-sm text-ink/60 leading-relaxed">{children}</span>
     </button>
   );
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/85 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-ink/50 backdrop-blur-sm">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-surface border-4 border-white/10 p-8">
-        <ShieldCheck size={28} className="text-primary mb-4" />
-        <h2 className="text-2xl font-display font-bold uppercase tracking-tighter mb-2">Before we start<span className="text-primary">.</span></h2>
-        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-6 leading-relaxed">
+        className="w-full max-w-md card">
+        <div className="w-12 h-12 rounded-2xl bg-mint flex items-center justify-center mb-4">
+          <ShieldCheck size={24} className="text-ink" />
+        </div>
+        <h2 className="text-2xl mb-2">Before we start<span className="text-primary-ink">.</span></h2>
+        <p className="text-sm text-ink/50 mb-6 leading-relaxed">
           A quick note on how this works and what happens to what you share.
         </p>
         <div className="space-y-3 mb-6">
@@ -50,7 +52,7 @@ const ConsentGate = ({ onAccept }: { onAccept: () => void }) => {
           </Item>
         </div>
         <button onClick={accept} disabled={!ready}
-          className="btn-primary w-full py-3 disabled:opacity-40">I understand — continue</button>
+          className="btn-primary w-full py-3.5 disabled:opacity-40">I understand — continue</button>
       </motion.div>
     </div>
   );

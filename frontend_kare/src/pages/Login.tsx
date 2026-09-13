@@ -30,54 +30,54 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-8 selection:bg-primary selection:text-black">
+    <div className="min-h-screen bg-background flex items-center justify-center p-8 selection:bg-primary selection:text-primary-ink">
       <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-14">
-          <Link to="/" className="w-20 h-20 bg-primary border-4 border-black flex items-center justify-center text-black mb-8 shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] hover:-translate-y-1 transition-transform">
-            <Activity size={40} />
+        <div className="flex flex-col items-center mb-12">
+          <Link to="/" className="w-16 h-16 rounded-3xl bg-ink flex items-center justify-center text-primary mb-7 hover:-translate-y-1 transition-transform">
+            <Activity size={32} />
           </Link>
-          <div className="text-[10px] font-bold uppercase tracking-[0.5em] text-primary mb-2">Kare Health</div>
-          <h1 className="text-5xl font-display font-bold text-white uppercase tracking-tighter text-center">Welcome Back<span className="text-primary">.</span></h1>
-          <p className="text-white/20 text-xs font-bold uppercase tracking-[0.3em] mt-4">Your health companion, always there</p>
+          <div className="text-xs font-semibold text-primary-ink/70 mb-2 tracking-wide">Kare Health</div>
+          <h1 className="text-4xl text-center">Welcome back<span className="text-primary-ink">.</span></h1>
+          <p className="text-ink/40 text-sm mt-3">Your health companion, always there</p>
         </div>
 
-        <div className="brutalist-card bg-surface border-2 border-white/10 p-10">
-          <form onSubmit={handleLogin} className="space-y-8">
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] ml-1">Email</label>
+        <div className="card">
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-ink/50 ml-1">Email</label>
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com" style={{ textTransform: 'none' }}
-                className="brutalist-input w-full focus:border-primary transition-colors" />
+                placeholder="you@example.com"
+                className="input-field w-full" />
             </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] ml-1">Password</label>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-ink/50 ml-1">Password</label>
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} required value={password}
-                  onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" style={{ textTransform: 'none' }}
-                  className="brutalist-input w-full pr-16 focus:border-primary transition-colors" />
+                  onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
+                  className="input-field w-full pr-14" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 hover:text-primary transition-colors">
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-ink/30 hover:text-primary-ink transition-colors">
+                  {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
                 </button>
               </div>
             </div>
             <button type="submit" disabled={isLoading}
-              className="btn-primary w-full py-5 flex items-center justify-center gap-4 group disabled:opacity-50 min-h-[44px]">
-              <span className="text-sm font-bold uppercase tracking-[0.3em]">{isLoading ? 'Signing in…' : 'Sign In'}</span>
-              <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+              className="btn-primary w-full py-4 group disabled:opacity-50 min-h-[44px]">
+              <span className="text-sm">{isLoading ? 'Signing in…' : 'Sign in'}</span>
+              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
             {error && (
               <motion.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                className="text-red-500 text-[10px] font-bold uppercase tracking-widest text-center">{error}</motion.p>
+                className="text-red-600 text-sm text-center">{error}</motion.p>
             )}
           </form>
         </div>
 
-        <div className="flex flex-col items-center mt-12 space-y-5">
-          <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest">
-            New here? <Link to="/register" className="text-primary hover:underline">Create an account →</Link>
+        <div className="flex flex-col items-center mt-10 space-y-4">
+          <p className="text-ink/40 text-sm">
+            New here? <Link to="/register" className="text-primary-ink font-semibold hover:underline">Create an account →</Link>
           </p>
-          <Link to="/" className="text-white/10 text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors">Return home</Link>
+          <Link to="/" className="text-ink/30 text-sm hover:text-ink transition-colors">Return home</Link>
         </div>
       </motion.div>
     </div>

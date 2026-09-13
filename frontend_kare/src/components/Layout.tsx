@@ -10,14 +10,14 @@ const Layout = () => {
   React.useEffect(() => setOpen(false), [loc.pathname]);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-ink">
       <div className={`fixed inset-y-0 left-0 z-50 transition-transform lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <Sidebar />
       </div>
-      {open && <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setOpen(false)} />}
+      {open && <div className="fixed inset-0 z-40 bg-ink/40 lg:hidden" onClick={() => setOpen(false)} />}
 
       <button onClick={() => setOpen(true)}
-        className="lg:hidden fixed top-3 left-3 z-30 w-10 h-10 bg-surface border-2 border-white/10 flex items-center justify-center text-white">
+        className="lg:hidden fixed top-3 left-3 z-30 w-10 h-10 rounded-full bg-surface shadow-md border border-ink/8 flex items-center justify-center text-ink">
         {open ? <X size={18} /> : <Menu size={18} />}
       </button>
 

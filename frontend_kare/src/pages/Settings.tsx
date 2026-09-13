@@ -10,9 +10,9 @@ import { useAuthStore } from '../store/useAuthStore';
 
 const Toggle = ({ on, onClick, busy }: { on: boolean; onClick: () => void; busy?: boolean }) => (
   <button onClick={onClick} disabled={busy}
-    className={cn('w-16 h-8 border-4 relative transition-all', on ? 'bg-primary border-black' : 'bg-black border-white/10')}>
-    {busy ? <Loader2 size={12} className="animate-spin absolute top-1.5 left-1.5 text-black" />
-      : <motion.div animate={{ x: on ? 30 : 2 }} className={cn('absolute top-1 w-5 h-5', on ? 'bg-black' : 'bg-white/20')} />}
+    className={cn('w-14 h-8 rounded-full relative transition-all flex-shrink-0', on ? 'bg-primary' : 'bg-ink/15')}>
+    {busy ? <Loader2 size={14} className="animate-spin absolute top-1.5 left-1.5 text-ink/60" />
+      : <motion.div animate={{ x: on ? 26 : 4 }} className={cn('absolute top-1 w-6 h-6 rounded-full', on ? 'bg-primary-ink' : 'bg-white')} />}
   </button>
 );
 
@@ -68,19 +68,21 @@ const Settings = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto space-y-10 p-6 md:p-8 pb-24">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto space-y-8 p-6 md:p-8 pb-24">
       <div>
-        <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-2">Settings</div>
-        <h1 className="text-4xl font-display font-bold tracking-tighter uppercase">Settings<span className="text-primary">.</span></h1>
+        <div className="text-xs font-semibold text-primary-ink/70 mb-2">Settings</div>
+        <h1 className="text-4xl">Settings<span className="text-primary-ink">.</span></h1>
       </div>
 
-      <section className="brutalist-card bg-surface border-2 border-white/10 divide-y-2 divide-white/10">
+      <section className="card !p-0 divide-y divide-ink/8">
         <div className="p-6 flex items-center justify-between gap-6">
           <div className="flex items-start gap-4">
-            <Bell size={22} className="text-primary mt-1 flex-shrink-0" />
+            <div className="w-10 h-10 rounded-xl bg-mint flex items-center justify-center flex-shrink-0">
+              <Bell size={18} className="text-ink" />
+            </div>
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-tight">Proactive check-ins</h3>
-              <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1 leading-relaxed">
+              <h3 className="text-sm font-display font-bold text-ink">Proactive check-ins</h3>
+              <p className="text-sm text-ink/45 mt-1 leading-relaxed">
                 Kare follows up after a consultation to see how you're doing. You can turn this off any time.
               </p>
             </div>
@@ -90,31 +92,35 @@ const Settings = () => {
 
         <div className="p-6 flex items-center justify-between gap-6">
           <div className="flex items-start gap-4">
-            <Globe size={22} className="text-primary mt-1 flex-shrink-0" />
+            <div className="w-10 h-10 rounded-xl bg-lavender flex items-center justify-center flex-shrink-0">
+              <Globe size={18} className="text-ink" />
+            </div>
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-tight">Language</h3>
-              <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1">Kare replies in this language</p>
+              <h3 className="text-sm font-display font-bold text-ink">Language</h3>
+              <p className="text-sm text-ink/45 mt-1">Kare replies in this language</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {langSaved && <Check size={16} className="text-primary" />}
+            {langSaved && <Check size={16} className="text-primary-ink" />}
             <select value={lang} onChange={(e) => saveLang(e.target.value as LangCode)}
-              className="bg-black border-2 border-white/10 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white outline-none focus:border-primary">
+              className="bg-background border-2 border-ink/10 rounded-xl px-3 py-2 text-sm font-medium text-ink outline-none focus:border-primary">
               {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
             </select>
           </div>
         </div>
       </section>
 
-      {msg && <p className="text-primary text-[10px] font-bold uppercase tracking-widest">{msg}</p>}
+      {msg && <p className="text-primary-ink text-sm font-medium">{msg}</p>}
 
-      <section className="brutalist-card bg-surface border-2 border-red-500/30 p-6">
+      <section className="card border-red-200 bg-red-50/60">
         <div className="flex items-start gap-4">
-          <Trash2 size={22} className="text-red-500 mt-1 flex-shrink-0" />
+          <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+            <Trash2 size={18} className="text-red-600" />
+          </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold uppercase tracking-tight text-red-500">Delete account</h3>
-            <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1 mb-4">Removes everything — profile, consultations, notes. Irreversible.</p>
-            <button onClick={deleteAccount} className="text-[10px] font-bold uppercase tracking-widest text-red-500 border-2 border-red-500/40 px-4 py-2 hover:bg-red-500 hover:text-black transition-all">
+            <h3 className="text-sm font-display font-bold text-red-700">Delete account</h3>
+            <p className="text-sm text-red-700/60 mt-1 mb-4">Removes everything — profile, consultations, notes. Irreversible.</p>
+            <button onClick={deleteAccount} className="text-sm font-semibold text-red-700 border-2 border-red-300 rounded-full px-5 py-2 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all">
               Delete my account
             </button>
           </div>
