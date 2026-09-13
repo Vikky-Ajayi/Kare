@@ -16,10 +16,39 @@ export function pushSupported(): boolean {
   return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 }
 
+/** Dispatched on `window` once a new service worker has taken control of
+ * this page — i.e. a deploy happened and the running app is one activation
+ * behind it. `UpdateToast` listens for this to offer a refresh; nothing
+ * reloads on its own, since forcing that mid-consultation would be worse
+ * than running one version behind for a few minutes. */
+export const SW_UPDATE_EVENT = 'kare:update-ready';
+
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!('serviceWorker' in navigator)) return null;
   try {
-    return await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+
+    // The new worker calls skipWaiting()+clients.claim() (see sw.js) as soon
+    // as it installs, so `controllerchange` is the reliable "a new version
+    // just took over" signal — covers the PWA being left open for days,
+    // which a plain per-navigation SW check would miss.
+    let notified = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (notified) return;
+      notified = true;
+      window.dispatchEvent(new CustomEvent(SW_UPDATE_EVENT));
+    });
+
+    // Installed PWAs don't reliably get a fresh navigation for a long time;
+    // ask the browser to re-check the worker script periodically and
+    // whenever the tab regains focus, instead of only on cold start.
+    const check = () => reg.update().catch(() => {});
+    setInterval(check, 60_000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') check();
+    });
+
+    return reg;
   } catch (e) {
     console.warn('SW registration failed', e);
     return null;

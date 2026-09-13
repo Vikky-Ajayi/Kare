@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Activity } from 'lucide-react';
+import InstallButton from './InstallButton';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,7 +24,8 @@ const Navbar = () => {
             <Link to="/impact" className="hover:text-ink transition-colors">Impact</Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4">
+            <InstallButton variant="nav" />
             <Link to="/login" className="text-sm font-semibold text-ink/70 hover:text-ink transition-colors">Log in</Link>
             <Link to="/register" className="btn-primary !py-3 !px-6 min-h-[44px]">Get started</Link>
           </div>
@@ -65,6 +67,7 @@ const Navbar = () => {
                 <Link to="/about" onClick={() => setIsMenuOpen(false)} className="hover:text-primary-ink transition-colors">About</Link>
                 <Link to="/impact" onClick={() => setIsMenuOpen(false)} className="hover:text-primary-ink transition-colors">Impact</Link>
                 <div className="h-px bg-ink/10 my-2" />
+                <InstallButton variant="nav" />
                 <Link to="/login" onClick={() => setIsMenuOpen(false)} className="hover:text-primary-ink transition-colors">Log in</Link>
                 <Link to="/register" onClick={() => setIsMenuOpen(false)} className="btn-primary justify-center">Get started</Link>
               </div>

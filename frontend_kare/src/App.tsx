@@ -19,6 +19,7 @@ import { useAuthStore } from './store/useAuthStore';
 import { auth } from './services/api';
 import { registerServiceWorker } from './services/notifications';
 import ScrollToTop from './components/ScrollToTop';
+import UpdateToast from './components/UpdateToast';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -40,6 +41,7 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <UpdateToast />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
