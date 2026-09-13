@@ -22,8 +22,18 @@ rather than us reimplementing that.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
+# huggingface_hub's default etag/download timeouts (10s) are too short for
+# this project's network — the same "resolve stalls" issue _fetch.sh works
+# around for dataset parquet, but here it's inside transformers' own model
+# download path, so we raise it via env instead. setdefault: don't clobber
+# a value the caller deliberately set.
+os.environ.setdefault("HF_HUB_ETAG_TIMEOUT", "120")
+os.environ.setdefault("HF_HUB_DOWNLOAD_TIMEOUT", "120")
+
+from benchmark.config import LOCAL_MODEL_DIR
 from benchmark.models import Adapter
 
 _MODEL_FOR_LANG = {
@@ -44,9 +54,15 @@ class NCAIRAdapter(Adapter):
         if lang not in self._pipes:
             from transformers import pipeline
 
+            # Prefer pre-fetched weights (benchmark/_fetch_ncair.sh) — the HF
+            # hub downloader's own snapshot_download stalls silently and
+            # never recovers on this network; curl -C - with an outer retry
+            # loop does not.
+            local = LOCAL_MODEL_DIR / f"ncair-{lang}"
+            source = str(local) if (local / "pytorch_model.bin").exists() else _MODEL_FOR_LANG[lang]
             self._pipes[lang] = pipeline(
                 "automatic-speech-recognition",
-                model=_MODEL_FOR_LANG[lang],
+                model=source,
                 chunk_length_s=28,      # model card: 30s max per inference pass
                 stride_length_s=4,
                 device=-1,               # CPU — this machine has no CUDA/MPS transformers build
