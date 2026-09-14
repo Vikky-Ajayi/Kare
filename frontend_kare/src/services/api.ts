@@ -112,6 +112,31 @@ export const voice = {
   end: (id: string) => api.delete(`/voice/conversations/${id}`).then((r) => r.data),
 };
 
+// ── image analysis ─────────────────────────────────────────────────
+export interface MedicationImageResult {
+  analysis_id: string;
+  analysis: string;
+  structured_findings: {
+    drug_name: string | null;
+    generic_name: string | null;
+    strength: string | null;
+    form: string | null;
+    common_use: string | null;
+    warnings: string | null;
+  };
+  confidence_note: string;
+  disclaimer: string;
+}
+
+export const images = {
+  analyzeMedication: (file: File | Blob) => {
+    const fd = new FormData();
+    fd.append('file', file, file instanceof File ? file.name : 'medication.jpg');
+    fd.append('image_type', 'medication');
+    return api.post<MedicationImageResult>('/images/analyze', fd, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data);
+  },
+};
+
 // ── symptoms ────────────────────────────────────────────────────────
 export const symptoms = {
   check: (b: { symptoms: string; language: LangCode; include_patient_history?: boolean }) =>

@@ -48,6 +48,24 @@ IMAGE_PROMPT = """You analyse a medical image. Return ONLY a JSON object:
 }
 Return ONLY the JSON."""
 
+# Separate from IMAGE_PROMPT: a pill/box/blister-pack photo needs fields that
+# map onto an "add medication" form (drug_name, strength -> dosage), not the
+# symptom-shaped schema above (urgency/possible_conditions make no sense for
+# a photo of packaging).
+MEDICATION_IMAGE_PROMPT = """You identify a medication from a photo of the pill, \
+blister pack, or box. Return ONLY a JSON object:
+{
+  "drug_name": "brand name as printed, or null if unreadable",
+  "generic_name": "active ingredient / generic name, or null",
+  "strength": "e.g. '500mg', or null if not visible",
+  "form": "tablet|capsule|syrup|injection|cream|other, or null",
+  "common_use": "one plain sentence on what it's typically prescribed for, or null",
+  "warnings": "anything notable to flag — e.g. 'packaging partially obscured, verify with a pharmacist' — or null",
+  "confidence": "low|medium|high"
+}
+If you cannot identify the medication with reasonable confidence, set drug_name to null and \
+confidence to "low" rather than guessing. Return ONLY the JSON."""
+
 
 def _loads(raw: str) -> dict:
     raw = raw.strip()
@@ -117,11 +135,12 @@ async def analyze_image(image_bytes: bytes, image_type: str = "symptom") -> dict
         "medication": "Identify this medication — name, strength, markings.",
         "document": "Extract and summarise the medical information shown.",
     }.get(image_type, "Analyse this medical image.")
+    system_prompt = MEDICATION_IMAGE_PROMPT if image_type == "medication" else IMAGE_PROMPT
 
     resp = await client.chat.completions.create(
         model=settings.GROQ_VISION_MODEL,
         messages=[
-            {"role": "system", "content": IMAGE_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": [
                 {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}},
                 {"type": "text", "text": ask},
@@ -134,6 +153,12 @@ async def analyze_image(image_bytes: bytes, image_type: str = "symptom") -> dict
     parsed = _loads(raw)
     if parsed:
         return parsed
+    if image_type == "medication":
+        return {
+            "drug_name": None, "generic_name": None, "strength": None, "form": None,
+            "common_use": None, "confidence": "low",
+            "warnings": raw or "Could not read the image — please enter the details manually.",
+        }
     return {
         "medical_observations": [raw] if raw else [],
         "urgency": "low", "confidence": "low",

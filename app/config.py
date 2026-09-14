@@ -37,7 +37,11 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_LLM_MODEL: str = "openai/gpt-oss-120b"
     GROQ_LLM_MODEL_FAST: str = "openai/gpt-oss-20b"
-    GROQ_VISION_MODEL: str = "meta-llama/llama-4-scout-17b-16e-instruct"
+    # llama-4-scout (the previous default) was retired from Groq's catalog —
+    # 404s as of this deploy. qwen3.8-27b is confirmed vision-capable and
+    # live as of the same check (qwen3.6-27b also works but leaks <think>
+    # reasoning tags into the raw response, which breaks JSON parsing).
+    GROQ_VISION_MODEL: str = "qwen/qwen3.8-27b"
     GROQ_WHISPER_MODEL: str = "whisper-large-v3"
     GROQ_WHISPER_MODEL_TURBO: str = "whisper-large-v3-turbo"
 

@@ -6,6 +6,7 @@ GET  /images/history          — Past image analyses for the patient
 GET  /images/{analysis_id}    — Get a specific analysis result
 """
 
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
@@ -19,6 +20,7 @@ from app.services.groq_service import analyze_image
 from app.utils.helpers import get_disclaimer
 
 router = APIRouter(prefix="/images", tags=["Image Analysis"])
+log = logging.getLogger("kare.images")
 
 ALLOWED_IMAGE_TYPES = {
     "image/jpeg", "image/jpg", "image/png",
@@ -85,11 +87,12 @@ async def analyze_medical_image(
     # so nothing sensitive is stored and no object store is needed.
     try:
         result = await analyze_image(contents, image_type=image_type)
-    except Exception as e:
+    except Exception as exc:
+        log.exception("image analysis failed")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Image analysis failed: {str(e)}",
-        )
+            detail="Couldn't analyse that image just now — please try again.",
+        ) from exc
 
     # Build confidence disclaimer
     confidence = result.get("confidence", "low")
@@ -99,12 +102,32 @@ async def analyze_medical_image(
         "low": "AI confidence is low. Please consult a healthcare professional for proper evaluation.",
     }.get(confidence, "AI confidence is limited. Always consult a healthcare professional.")
 
+    if image_type == "medication":
+        analysis_text = result.get("drug_name") or "Could not identify the medication from this photo."
+        structured_findings = {
+            "drug_name": result.get("drug_name"),
+            "generic_name": result.get("generic_name"),
+            "strength": result.get("strength"),
+            "form": result.get("form"),
+            "common_use": result.get("common_use"),
+            "warnings": result.get("warnings"),
+        }
+    else:
+        analysis_text = "\n".join(result.get("medical_observations", ["No observations available."]))
+        structured_findings = {
+            "image_content": result.get("image_content"),
+            "possible_conditions": result.get("possible_conditions", []),
+            "urgency": result.get("urgency", "unknown"),
+            "recommendations": result.get("recommendations", ""),
+            "limitations": result.get("limitations", ""),
+        }
+
     # Save analysis record to DB
     analysis_record = ImageAnalysis(
         patient_id=current_user.patient.id,
         image_url="",
         image_type=image_type,
-        analysis_result=str(result.get("medical_observations", [])),
+        analysis_result=analysis_text,
         structured_result=result,
         confidence_note=confidence_note,
     )
@@ -115,14 +138,8 @@ async def analyze_medical_image(
     return ImageAnalysisResponse(
         analysis_id=analysis_record.id,
         image_type=image_type,
-        analysis="\n".join(result.get("medical_observations", ["No observations available."])),
-        structured_findings={
-            "image_content": result.get("image_content"),
-            "possible_conditions": result.get("possible_conditions", []),
-            "urgency": result.get("urgency", "unknown"),
-            "recommendations": result.get("recommendations", ""),
-            "limitations": result.get("limitations", ""),
-        },
+        analysis=analysis_text,
+        structured_findings=structured_findings,
         confidence_note=confidence_note,
         disclaimer=get_disclaimer(language),
     )
