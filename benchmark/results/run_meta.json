@@ -1,10 +1,12 @@
 {
-  "ran_at": "2026-09-11T13:17:06.901880+00:00",
+  "ran_at": "2026-09-14T20:30:54.128446+00:00",
+  "corpus": "care",
   "models": [
     "sahara",
     "groq-whisper-v3-turbo",
     "groq-whisper-v3",
-    "faster-whisper-tiny"
+    "faster-whisper-tiny",
+    "ncair-atlas"
   ],
   "n_conversations": 20,
   "n_segments": 80,

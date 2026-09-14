@@ -272,6 +272,31 @@ def language_scope_note(summary: dict) -> str:
             "\"not applicable\", not \"failed\".*\n")
 
 
+def ncair_finding_note(summary: dict) -> str:
+    """NCAIR/N-ATLaS's WER on this set (~99%) reads like a crash or a scoring
+    bug at a glance — it isn't. Its three checkpoints are monolingual
+    fine-tunes (trained on pure Yoruba/Hausa/Igbo), and on code-switched
+    clinical speech they transliterate the English portions phonetically
+    into the target language's script rather than transcribing them as
+    English — e.g. the reference's "okay, good morning" comes back as
+    "ọ̀kẹ́, gúdù mọ̀nìn". Fluent monolingual output, but it destroys the one
+    thing this benchmark is actually testing. Worth saying plainly rather
+    than leaving a 99% next to a model name with no explanation."""
+    if "ncair-atlas" not in summary["models"]:
+        return ""
+    return (
+        "\n**On NCAIR/N-ATLaS's WER:** its three checkpoints are monolingual "
+        "fine-tunes, not code-switch-aware ones. On this set they don't drop "
+        "English words — they *transliterate* them phonetically into the "
+        "target language's script (the reference's \"okay, good morning\" "
+        "comes back as *\"ọ̀kẹ́, gúdù mọ̀nìn\"*). Fluent Yoruba/Hausa/Igbo "
+        "output, technically, but it erases the English half of every "
+        "code-switched sentence — exactly the failure mode a monolingual "
+        "model would be expected to have here, and exactly what this "
+        "benchmark is built to surface rather than average away.\n"
+    )
+
+
 def _head(text: str, n: int) -> str:
     toks = normalize(text).split()
     return " ".join(toks[:n]) + (" …" if len(toks) > n else "")
@@ -333,6 +358,7 @@ speech or merely memorised it). The exact clips are frozen in
 
 {table_overall(summary)}
 {language_scope_note(summary)}
+{ncair_finding_note(summary)}
 {table_incomplete(summary)}
 
 - **WER** — light normalisation (lower-case, punctuation & speaker tags removed).
