@@ -1,26 +1,19 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Mic, Brain, Languages, ShieldAlert, Check, X as XIcon } from 'lucide-react';
+import { ArrowRight, Check, X as XIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import WhyKare from '../components/landing/WhyKare';
+import HowItWorks from '../components/landing/HowItWorks';
+import SolutionsTabs from '../components/landing/SolutionsTabs';
+import WhoItsFor from '../components/landing/WhoItsFor';
 
 const container = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
 };
 const item = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } };
-
-const FEATURES = [
-  { icon: Mic, bg: 'bg-mint', title: 'Voice doctor consultation',
-    description: 'Your AI doctor listens to you speak, asks follow-up questions, and responds in full audio — just like a real consultation.' },
-  { icon: Brain, bg: 'bg-lavender', title: 'Remembers you',
-    description: 'After every conversation, Kare saves clinical notes about you. Next time you talk, it already knows your history.' },
-  { icon: Languages, bg: 'bg-peach', title: 'Speaks your language',
-    description: 'Full support for English, Yoruba, Hausa, Igbo and Nigerian Pidgin — ask in any of them, get a full audio response.' },
-  { icon: ShieldAlert, bg: 'bg-pink', title: 'Drug interaction checker',
-    description: 'Type in your medications and instantly see if they interact dangerously, backed by the RxNorm database.' },
-];
 
 const Landing = () => {
   return (
@@ -82,68 +75,34 @@ const Landing = () => {
         </div>
       </section>
 
-      <section className="py-24 px-6 md:px-8 bg-sand/40">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="text-xs font-semibold text-primary-ink/70 uppercase tracking-wide mb-4">Why it's different</div>
-          <h2 className="text-3xl md:text-5xl mb-6">
-            Not a form. <span className="text-primary-ink">An agent.</span>
-          </h2>
-          <p className="text-lg text-ink/55 leading-relaxed max-w-2xl mx-auto">
-            Most health apps make you fill in dropdowns in English. Kare listens, decides what to ask
-            next, checks your medications on its own, and follows up when it thinks you need it —
-            without waiting to be asked.
-          </p>
-        </div>
-      </section>
+      <WhyKare />
+      <HowItWorks />
+      <SolutionsTabs />
 
-      <section id="features" className="py-24 px-6 md:px-8">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="mb-16 max-w-xl">
-            <div className="text-xs font-semibold text-primary-ink/70 uppercase tracking-wide mb-3">What's included</div>
-            <h2 className="text-4xl md:text-5xl">Everything a consultation needs<span className="text-primary-ink">.</span></h2>
+      <section className="py-24 px-6 md:px-8">
+        <div className="max-w-[1400px] mx-auto grid md:grid-cols-2 gap-6">
+          <div className="card bg-primary/25 border-primary/30">
+            <h3 className="text-xl font-display font-bold text-primary-ink mb-4">With Kare</h3>
+            <ul className="space-y-3">
+              {['Speaks your language, mixed the way you actually talk', 'Remembers every past visit automatically',
+                'Checks in on its own after a consultation', 'Flags emergencies with local numbers, instantly'].map((t) => (
+                <li key={t} className="flex gap-3 text-sm text-ink/80"><Check size={16} className="text-primary-ink flex-shrink-0 mt-0.5" /> {t}</li>
+              ))}
+            </ul>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {FEATURES.map((f) => (
-              <motion.div key={f.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                className="card card-hover">
-                <div className={`w-14 h-14 rounded-2xl ${f.bg} flex items-center justify-center mb-6`}>
-                  <f.icon size={26} className="text-ink" />
-                </div>
-                <h4 className="text-2xl mb-3">{f.title}</h4>
-                <p className="text-sm text-ink/50 leading-relaxed">{f.description}</p>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="mt-20 grid md:grid-cols-2 gap-6">
-            <div className="card bg-primary/25 border-primary/30">
-              <h3 className="text-xl font-display font-bold text-primary-ink mb-4">With Kare</h3>
-              <ul className="space-y-3">
-                {['Speaks your language, mixed the way you actually talk', 'Remembers every past visit automatically',
-                  'Checks in on its own after a consultation', 'Flags emergencies with local numbers, instantly'].map((t) => (
-                  <li key={t} className="flex gap-3 text-sm text-ink/80"><Check size={16} className="text-primary-ink flex-shrink-0 mt-0.5" /> {t}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="card bg-sand/30">
-              <h3 className="text-xl font-display font-bold text-ink/70 mb-4">A typical health app</h3>
-              <ul className="space-y-3">
-                {['English-only dropdown forms', 'Starts from zero on every visit',
-                  'Only responds when you open the app', 'No sense of urgency built in'].map((t) => (
-                  <li key={t} className="flex gap-3 text-sm text-ink/50"><XIcon size={16} className="text-ink/30 flex-shrink-0 mt-0.5" /> {t}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-16 text-center">
-            <Link to="/features" className="inline-flex items-center gap-2 text-sm font-semibold text-primary-ink hover:gap-3 transition-all">
-              View all features <ArrowRight size={16} />
-            </Link>
+          <div className="card bg-sand/30">
+            <h3 className="text-xl font-display font-bold text-ink/70 mb-4">A typical health app</h3>
+            <ul className="space-y-3">
+              {['English-only dropdown forms', 'Starts from zero on every visit',
+                'Only responds when you open the app', 'No sense of urgency built in'].map((t) => (
+                <li key={t} className="flex gap-3 text-sm text-ink/50"><XIcon size={16} className="text-ink/30 flex-shrink-0 mt-0.5" /> {t}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
+
+      <WhoItsFor />
 
       <Footer />
     </div>
