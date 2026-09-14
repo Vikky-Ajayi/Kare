@@ -30,7 +30,7 @@ const PHASE_TEXT: Record<string, string> = {
 
 const VoiceDoctor = () => {
   const user = useAuthStore((s) => s.user);
-  const [params] = useSearchParams();
+  const [params, setSearchParams] = useSearchParams();
   const resumeConv = params.get('c');
   const followupId = params.get('f');
 
@@ -48,6 +48,26 @@ const VoiceDoctor = () => {
   useEffect(() => { if (audioRef.current) v.attachAudio(audioRef.current); }, [v.attachAudio]);
   useEffect(() => { v.setMuted(muted); }, [muted]); // eslint-disable-line
   useEffect(() => { if (followupId) notifications.markClicked(followupId); }, [followupId]);
+
+  // No ?c= in the URL (i.e. arrived via the sidebar, not a Dashboard/
+  // notification link) — pick up the patient's own most recent open
+  // consultation instead of showing a blank panel. Kare is supposed to
+  // remember you; the chat history shouldn't reset just because you
+  // navigated away and came back.
+  useEffect(() => {
+    if (resumeConv) return;
+    let cancelled = false;
+    voiceApi.conversations().then((list) => {
+      if (cancelled) return;
+      const openConv = list.find((c) => c.status === 'active');
+      if (openConv) {
+        v.loadHistory(openConv.id);
+        setSearchParams({ c: openConv.id }, { replace: true });
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeConv]);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [v.messages.length, v.partial, v.phase]);
