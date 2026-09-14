@@ -45,14 +45,31 @@ async def run_agent(
 
     for i in range(MAX_ITERS):
         force_answer = i == MAX_ITERS - 1
-        resp = await llm.complete(
-            messages,
-            tools=None if force_answer else tool_schemas,
-            tool_choice="auto",
-            temperature=0.4,
-            max_tokens=500,
-            reasoning_effort="low",
-        )
+        try:
+            resp = await llm.complete(
+                messages,
+                tools=None if force_answer else tool_schemas,
+                tool_choice="auto",
+                temperature=0.4,
+                max_tokens=500,
+                reasoning_effort="low",
+            )
+        except Exception as exc:  # noqa: BLE001
+            # The provider already retries transient failures (including a
+            # gpt-oss tool-call-name glitch) several times over — if it still
+            # didn't recover, the one thing that reliably sidesteps a
+            # tool-calling problem is not offering tools at all. One retry,
+            # tools off; a patient must never see a raw API error mid-consult.
+            log.warning("completion failed (%s), retrying without tools: %s", type(exc).__name__, exc)
+            if force_answer:
+                return AgentResult(reply=_FALLBACK, tool_calls=made, usage_tokens=total_tokens)
+            try:
+                resp = await llm.complete(
+                    messages, tools=None, temperature=0.4, max_tokens=500, reasoning_effort="low",
+                )
+            except Exception:  # noqa: BLE001
+                log.exception("completion failed again without tools")
+                return AgentResult(reply=_FALLBACK, tool_calls=made, usage_tokens=total_tokens)
         total_tokens += resp.usage.get("total_tokens", 0)
 
         if not resp.tool_calls:

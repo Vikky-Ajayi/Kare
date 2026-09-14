@@ -92,9 +92,16 @@ class GroqLLM(LLMProvider):
         except Exception as exc:  # noqa: BLE001
             status = getattr(exc, "status_code", None)
             name = type(exc).__name__
+            msg = str(exc)
+            # gpt-oss models occasionally emit a malformed tool-call name
+            # (e.g. "functions/score_triage" instead of "score_triage") that
+            # Groq's own server rejects as a 400 before it ever reaches us —
+            # a model sampling hiccup, not a malformed request on our end, so
+            # worth a retry same as a transient server error.
+            tool_glitch = "tool_use_failed" in msg or "Tool call validation failed" in msg
             transient = status in (408, 409, 429, 500, 502, 503, 504) or name in (
                 "APITimeoutError", "APIConnectionError", "InternalServerError",
-            )
+            ) or tool_glitch
             if transient:
                 log.warning("Groq transient error (%s), retrying: %s", status or name, exc)
                 raise _Retryable(str(exc)) from exc

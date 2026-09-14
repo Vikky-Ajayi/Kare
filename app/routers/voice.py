@@ -93,7 +93,7 @@ async def voice_chat(
         )
     except Exception as exc:  # noqa: BLE001
         log.exception("consultation failed")
-        raise HTTPException(502, f"AI service error: {exc}") from exc
+        raise HTTPException(502, "Kare couldn't respond just then — please try again.") from exc
 
     audio_b64 = None
     if payload.include_audio:
@@ -139,7 +139,8 @@ async def voice_chat_audio(
             contents, language=language, filename=file.filename or "audio.wav",
         )
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(502, f"Transcription failed: {exc}") from exc
+        log.exception("transcription failed")
+        raise HTTPException(502, "Couldn't hear that clearly — please try again.") from exc
 
     if not tr.text:
         raise HTTPException(400, "Could not make out the audio — please speak clearly and try again.")
@@ -149,7 +150,8 @@ async def voice_chat_audio(
             db, user, text=tr.text, language=language, conversation_id=conversation_id,
         )
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(502, f"AI consultation failed: {exc}") from exc
+        log.exception("consultation failed")
+        raise HTTPException(502, "Kare couldn't respond just then — please try again.") from exc
 
     audio_b64 = None
     try:
@@ -189,7 +191,8 @@ async def transcribe(
             contents, language=language, filename=file.filename or "audio.wav",
         )
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(502, f"Transcription error: {exc}") from exc
+        log.exception("transcription failed")
+        raise HTTPException(502, "Couldn't hear that clearly — please try again.") from exc
     return TranscribeResponse(
         text=tr.text, language_detected=tr.language, duration_seconds=tr.duration_s,
     )
@@ -205,7 +208,8 @@ async def synthesize(
     try:
         syn = await get_voice().synthesize(payload.text, language=lang)
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(502, f"TTS error: {exc}") from exc
+        log.exception("synthesis failed")
+        raise HTTPException(502, "Couldn't generate audio just then — please try again.") from exc
     return Response(
         content=syn.audio,
         media_type=syn.content_type,
@@ -290,10 +294,10 @@ async def voice_stream(ws: WebSocket):
 
     except (TimeoutError, WebSocketDisconnect):
         pass
-    except Exception as exc:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         log.exception("voice stream error")
         with _suppress():
-            await ws.send_json({"type": "error", "detail": str(exc)})
+            await ws.send_json({"type": "error", "detail": "Something went wrong — please try again."})
     finally:
         db.close()
         with _suppress():
