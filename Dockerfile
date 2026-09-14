@@ -22,5 +22,5 @@ USER kare
 
 EXPOSE 8000
 
-# Railway sets $PORT. Migrations run via the release command / start.sh, not here.
-CMD ["sh", "-c", "gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w ${WEB_CONCURRENCY:-2} -b 0.0.0.0:${PORT:-8000} --timeout 120"]
+# Railway sets $PORT. start.sh runs migrations then execs gunicorn.
+CMD ["sh", "start.sh"]
