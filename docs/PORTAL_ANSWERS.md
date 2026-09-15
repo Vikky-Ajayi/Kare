@@ -10,15 +10,20 @@ Word counts are approximate, matching the portal's stated limits.
 
 ---
 
-**1. A short description of the problem your app addresses** (~50 words)
+**1. A short description of the problem your app addresses** (~50 words — this
+one runs a bit longer to actually sound like a person said it; trim if the
+field pushes back)
 
-> Nigeria accounts for over 28% of the world's maternal deaths — most
-> preventable, driven by delayed care (WHO). In a country of 500+ languages
-> where code-switching is the everyday norm, symptoms are hard to describe in
-> formal English. WHO also estimates medication errors kill roughly 1 in
-> every million people globally — worse in low-resource settings. People die
-> from delay, miscommunication, and preventable drug harm — not untreatable
-> disease.
+> Most people in Nigeria don't die because their illness was untreatable —
+> they die because help came too late, because they couldn't get a doctor to
+> understand what they were feeling, or because they took a drug that clashed
+> with something else they were already on. Nigeria has the highest maternal
+> death toll in the world — over 28% of all global maternal deaths, mostly
+> from delay (WHO). Add 500+ languages where people naturally mix English
+> with Yoruba, Hausa, Igbo or Pidgin, and WHO's own estimate that medication
+> errors kill about 1 in a million people worldwide, and the real problem
+> isn't the disease. It's the delay, the miscommunication, and the wrong
+> drug.
 
 <sub>Sources: WHO/UNICEF/UNFPA *Trends in Maternal Mortality* (Nigeria's
 28.3% share of global maternal deaths); WHO *Global Burden of Preventable
@@ -30,11 +35,12 @@ Nigeria (arXiv:2604.16287).</sub>
 
 **2. Describe your target user(s) and the potential number of users it could impact** (~50 words)
 
-> Nigeria's 200M+ population, where an estimated 7 in 10 people code-switch
-> daily and maternal mortality is among the world's highest. Primary users:
-> pregnant women needing continuous antenatal support, and anyone managing an
-> ongoing condition who can't easily reach a clinic — realistically tens of
-> millions of smartphone users across West Africa's Anglophone corridor.
+> Nigeria's 200M+ population, across 500+ languages where code-switching is
+> just how people talk day to day, and maternal mortality is the highest in
+> the world. Primary users: pregnant women needing continuous antenatal
+> support, and anyone managing an ongoing condition who can't easily reach a
+> clinic — realistically tens of millions of smartphone users across West
+> Africa's Anglophone corridor.
 
 ---
 
@@ -62,11 +68,12 @@ Nigeria (arXiv:2604.16287).</sub>
 
 **6. How is the solution agentic? What downstream task does the code-switched transcript enable?** (~50 words)
 
-> Kare runs a tool-calling agent (Groq gpt-oss-120b) that decides on its own
-> when to check drug interactions, score triage urgency, update the clinical
-> record, or escalate an emergency. The code-switched transcript feeds
-> directly into these tools, so accurately capturing embedded English terms
-> determines whether triage and interaction-checking are actually safe.
+> Kare runs a tool-calling agent (OpenAI's open-weight `gpt-oss-120b`, served
+> via Groq) that decides on its own when to check drug interactions, score
+> triage urgency, update the clinical record, or escalate an emergency. The
+> code-switched transcript feeds directly into these tools, so accurately
+> capturing embedded English terms determines whether triage and
+> interaction-checking are actually safe.
 
 ---
 
