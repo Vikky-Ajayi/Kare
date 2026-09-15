@@ -6,7 +6,8 @@ code-switching, not just claim it in narration — the cold open below exists
 specifically for that; don't cut it. Screen recording of the live PWA
 (`kare-health.vercel.app`, not localhost — judges should see it's actually
 deployed) with voice audible. Keep talking-head to zero; narrate over the
-screen. Script below runs ~4:00, leaving a minute of buffer.
+screen. Script below runs ~4:15, leaving under a minute of buffer against the
+5:00 cap — keep narration tight.
 
 Record on a phone-sized viewport (Chrome devtools device mode, or an actual
 phone) so it reads as the mobile product it is.
@@ -40,25 +41,22 @@ phone) so it reads as the mobile product it is.
 
 ## Before you record
 
-```bash
-# backend running (Railway prod, or local):
-make run
-# seed the demo patients:
-make seed
-# frontend:
-cd frontend_kare && npm run dev
-```
+Two genuinely fresh accounts — registered live via the real API, zero seeded
+history, nothing pre-loaded:
 
-Demo accounts (`scripts/seed_demo.py`, password `demo-kare-2026`):
+| Account | Email | Password | Used for |
+|---|---|---|---|
+| **Bisi Adewale** | `demo.a@karedemo.app` | `KareDemo2026!` | consult, meds, memory, escalation |
+| **Funke Bello** | `demo.b@karedemo.app` | `KareDemo2026!` | pregnancy onboarding |
 
-| Persona | Email | State |
-|---|---|---|
-| **Amina** (pregnant, 24 wks) | `amina@demo.kare.health` | pregnancy profile, prior consults |
-| **Tayo** (malaria follow-up) | `tayo@demo.kare.health` | history: recurrent malaria |
-| **Chidi** (hypertension) | `chidi@demo.kare.health` | on amlodipine, for the interaction demo |
-| **Ngozi** (new user) | `ngozi@demo.kare.health` | clean slate |
+Both exist only on the live deployment (`kare-health.up.railway.app` /
+`kare-health.vercel.app`) — record against that, not localhost.
 
-Have a headset mic. Rehearse the spoken lines once so the code-switching sounds
+**Have a real medication box or blister pack next to you** — the scan-photo
+shot needs an actual label to read. Any pack with printed English text works.
+
+Have a headset mic (avoids echo when Kare talks back — see recording
+mechanics above). Rehearse the spoken lines once so the code-switching sounds
 natural, not read.
 
 ---
@@ -79,109 +77,92 @@ Play a single audio line on screen (text on a black slide, then speak it):
 
 ---
 
-### 0:20–1:15 — Voice consultation + code-switching + the agent
+### 0:20–0:35 — Log in as a brand new patient
 
-Log in as **Chidi**. Open **Voice Doctor**. Accept the consent gate on screen
-(pause half a second on it — judges want to see consent).
+> **Narration:** "This is Bisi — an account I created minutes ago. Nothing
+> seeded, nothing pre-loaded."
 
-Tap the mic. Say, code-switched:
+Log in as **Bisi** (`demo.a@karedemo.app`). Land on an empty Dashboard —
+that emptiness is the point, briefly let it show.
 
-> *"Kare, I get headache since morning and I dey feel small dizzy. I still dey take my blood pressure medicine, amlodipine. I wan take Panadol Extra, e safe?"*
+---
+
+### 0:35–1:00 — Scan a medication (new feature)
+
+Open **Medications → Add**. Tap **Scan the box or pack**, photograph the real
+pack you have next to you. Show Kare reading it — drug name and strength
+land in the form on their own. Confirm, **Save**.
+
+> **Narration:** "Kare can read the medication straight off the pack — no
+> typing."
+
+---
+
+### 1:00–2:10 — Voice consultation: code-switching + the agent
+
+Open **Voice Doctor**. Accept the consent gate on screen (pause half a
+second — judges want to see consent). Tap the mic. Say, code-switched,
+naming a **different** drug than the one just scanned:
+
+> *"Kare, I get headache since morning and I dey feel small dizzy. I don just add [the scanned drug] to my list, and I wan take Panadol Extra too — e safe make I take both?"*
 
 Let Kare respond in voice. On screen, point out:
 
 - the **live transcript** showing the code-switched text transcribed correctly;
-- the **"Checked drug interactions"** chip that appears — *the model decided on
-  its own* to call the interaction tool against his recorded amlodipine;
+- the **"Checked drug interactions"** chip that appears — *the model decided
+  on its own* to check the two drugs against each other;
 - the reply comes back **in the same Pidgin/English register**, spoken aloud,
-  2–3 sentences, and it references that he's on amlodipine.
+  referencing the specific medication just added.
 
 > **Narration:** "It transcribed the mixed speech, and without being asked it
-> pulled his medication record and checked the interaction before answering.
-> That's the agent — seven tools, it picks what the situation needs."
+> checked the interaction against a medication that was added thirty seconds
+> ago — before answering. That's the agent, not a script."
 
 ---
 
-### 1:15–1:55 — Memory
+### 2:10–2:40 — Memory, and replaying a reply
 
-Still as Chidi, tap **Doctor's notes** (the drawer). Show the structured notes
-Kare has kept — conditions, medications, the concern just discussed.
-
-End the consultation. Re-open Voice Doctor. Tap mic:
+Send a second message in the same conversation:
 
 > *"Remind me wetin you talk about my headache."*
 
-Kare answers referencing the earlier conversation and his hypertension —
-without being re-told any of it.
+Kare answers referencing what was just discussed, without being re-told.
+Tap **Doctor's notes** to show the structured record Kare kept from this one
+conversation. Then tap the **play icon** on one of Kare's earlier replies —
+it re-synthesizes and plays that exact reply again on demand.
 
-> **Narration:** "Every consultation updates a longitudinal record. Next time,
-> Kare already knows him. Two patients with the same symptom get different
-> questions, because Kare remembers different histories."
-
----
-
-### 1:55–2:40 — Proactive follow-up
-
-> **Narration:** "When a consultation ends, Kare decides whether to check back
-> in — and when."
-
-Switch to **Tayo**. (If you can, show `scheduled_followups` briefly, or just
-narrate.) Trigger the follow-up worker so a push fires now:
-
-```bash
-python -m app.worker.followup_tick        # processes the due queue
-```
-
-Show the **push notification** arriving on the phone:
-
-> *"Hi Tayo 😊 How's the body today? Has the fever come down since we spoke, and did you finish the malaria drugs?"*
-
-> **Narration:** "That message was written just now, from Tayo's actual
-> context — not a template. A different patient gets a different message."
-
-**Tap the notification.** It opens Voice Doctor **on the same conversation** —
-the previous messages are right there. Reply by voice:
-
-> *"The fever don reduce but I never finish the drugs."*
-
-Kare picks up exactly where it left off.
-
-> **Narration:** "The notification is the doorway back into the conversation.
-> Quiet hours, a frequency cap, and it stops after two unanswered check-ins."
+> **Narration:** "Every reply is replayable, and every consultation updates a
+> real record — next time Bisi comes back, Kare already knows this."
 
 ---
 
-### 2:40–3:25 — Pregnancy companion
+### 2:40–3:35 — Pregnancy companion (fresh onboarding)
 
-Log in as **Amina**. The nav now shows **Pregnancy**. Open it.
+Log out, log in as **Funke** (`demo.b@karedemo.app`) — another brand new
+account. The nav doesn't show Pregnancy yet; open it and go through
+onboarding live — gestational age or LMP, due date shown immediately.
 
-Show the companion home: **Week 24**, EDD countdown, "this week" note, the
-trimester danger-sign list always visible.
-
-Tap mic:
+Land on the companion home: week number, EDD countdown, the trimester
+danger-sign list always visible. Tap mic:
 
 > *"Kare, I dey feel the baby move plenty today, that one normal?"*
 
-Kare answers warmly, refers to "our little one", confirms what's normal at
-24 weeks, and reminds her of the movement pattern to watch for — and to keep
-her next antenatal appointment.
-
-Then say a red-flag line:
+Kare answers warmly, refers to "our little one," confirms what's normal at
+this stage. Then a red-flag line:
 
 > *"But since morning I never really feel am move."*
 
-Kare's tone shifts: reduced fetal movement at this stage → **contact your
-midwife or go to the clinic today**, clearly and calmly.
+Kare's tone shifts: reduced fetal movement → **contact your midwife or go to
+the clinic today**, clearly and calmly.
 
-> **Narration:** "A dedicated mode that tracks the pregnancy week by week, in
-> her language, and knows the danger signs cold — it doesn't leave those to
-> chance."
+> **Narration:** "A dedicated mode that tracks the pregnancy week by week and
+> knows the danger signs cold — set up in under a minute, from nothing."
 
 ---
 
-### 3:25–3:50 — Emergency escalation
+### 3:35–4:00 — Emergency escalation
 
-Back to any account. Voice Doctor. Say:
+Back to Bisi's account. Voice Doctor. Say:
 
 > *"Kare, chest dey pain me and e hard for me to breathe."*
 
@@ -194,7 +175,7 @@ call 112, or 767 / 122 in Lagos.*
 
 ---
 
-### 3:50–4:00 — Close
+### 4:00–4:15 — Close
 
 Cut to the benchmark chart (`benchmark/report/charts/wer_by_language.png`).
 
@@ -207,14 +188,27 @@ Cut to the benchmark chart (`benchmark/report/charts/wer_by_language.png`).
 
 ## Capture checklist
 
+- [ ] Both accounts are freshly logged into on camera (not pre-loaded state)
+- [ ] Medication scan: photo → auto-filled drug name/strength shown clearly
 - [ ] Consent gate visible for ~1 s
 - [ ] Live transcript shows correct code-switched text
-- [ ] "Checked drug interactions" tool chip visible
+- [ ] "Checked drug interactions" tool chip visible, referencing the just-added drug
 - [ ] Doctor's notes drawer shown
 - [ ] Memory recall works with nothing re-stated
-- [ ] Real push notification on a real device (or convincing emulation)
-- [ ] Notification tap → same conversation, history intact
+- [ ] Replay button clicked on a past reply — audio plays again
+- [ ] Pregnancy onboarding shown live (LMP/weeks → EDD), not a pre-set week
 - [ ] Pregnancy: week number + danger-sign list on screen
 - [ ] Red-flag line → immediate escalation with "112 / 767 / 122"
 - [ ] Benchmark chart at the end
-- [ ] Total under 4:00
+- [ ] Total under 5:00 (script runs ~4:15)
+
+## Note: proactive follow-up push
+
+Not in the live shot list above — it needs a delivered notification, which
+depends on timing (quiet hours, the worker's schedule) that's genuinely hard
+to guarantee live on a fresh account with minutes to spare. If there's time
+left after everything else and you want it in: enable check-ins in Settings
+on Bisi's account, have Claude trigger the follow-up worker once off-camera
+so a "Kare checked in on you" card is already sitting on the Dashboard when
+you start that take, then just tap it on camera — the notification itself
+was real, only its *timing* was arranged for the recording.
