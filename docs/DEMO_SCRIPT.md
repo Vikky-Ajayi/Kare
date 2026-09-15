@@ -1,10 +1,40 @@
 # Kare — Demo Video Script
 
-**Target length: 3–4 minutes. Unlisted YouTube.** Screen recording of the PWA
-with voice audible. Keep talking-head to zero; narrate over the screen.
+**Portal limit: max 5 minutes. Public or Unlisted YouTube (Private can't be
+embedded for judges).** The portal explicitly requires the video to *show*
+code-switching, not just claim it in narration — the cold open below exists
+specifically for that; don't cut it. Screen recording of the live PWA
+(`kare-health.vercel.app`, not localhost — judges should see it's actually
+deployed) with voice audible. Keep talking-head to zero; narrate over the
+screen. Script below runs ~4:00, leaving a minute of buffer.
 
-Record on a phone-sized viewport (or Chrome devtools device mode, Pixel 7) so
-it reads as the mobile product it is.
+Record on a phone-sized viewport (Chrome devtools device mode, or an actual
+phone) so it reads as the mobile product it is.
+
+---
+
+## How to actually record it (Mac)
+
+1. **Redeploy first.** Confirm Railway has the latest commit (tool-call
+   crash fix, vision model fix) *before* filming — rehearsing the takes
+   against code that's about to change wastes a re-record.
+2. **Screen + mic:** `Cmd+Shift+5` → "Record Selected Portion" → drag it to
+   the browser window sized to a phone viewport → click the **Options**
+   menu → pick your microphone as the audio source → Record.
+   (QuickTime Player → File → New Screen Recording works the same way.)
+3. **Avoid feedback:** Kare talks back through your speakers, and an open
+   mic will pick that up as an echo in the recording. Wear headphones/earbuds
+   while filming — audio input stays clean, and viewers still hear Kare's
+   reply because it's playing on your machine, just not re-captured.
+4. **Do one continuous take per section**, not the whole 4 minutes at once —
+   stop the recording between shot-list sections below, and stitch clips
+   together after (QuickTime trim, iMovie, or just `ffmpeg -f concat`).
+   Much less painful than restarting from 0:00 over a stumble at 2:30.
+5. **Rehearse the code-switched lines out loud once** before recording them —
+   they should sound like natural speech, not a read-aloud script.
+6. **Upload to YouTube as Unlisted**, then open the link in a private/
+   incognito window before pasting it into the portal — confirms it's
+   actually viewable without your account signed in.
 
 ---
 
@@ -35,7 +65,7 @@ natural, not read.
 
 ## Shot list
 
-### 0:00–0:20 — The problem (cold open)
+### 0:00–0:20 — The problem (cold open) — this is the shot that satisfies "must show code-switching"
 
 > **Narration:** "This is how a Nigerian patient actually describes a symptom."
 
