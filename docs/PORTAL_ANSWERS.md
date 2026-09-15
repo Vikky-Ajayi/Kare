@@ -127,4 +127,27 @@ Nigeria (arXiv:2604.16287).</sub>
 
 > https://raw.githubusercontent.com/Vikky-Ajayi/Kare/main/docs/Kare_Benchmark_Report.pdf
 
-**Benchmark Audios Link** — skip (optional; AfriSwitchCare audio isn't ours to redistribute)
+**Benchmark Audios Link**
+
+> The 20 conversations benchmarked are Intron's own datasets — `AfriSwitchCare`
+> (clinical, primary) and `AfriSwitch` (general-domain, secondary corpus) —
+> both gated on Hugging Face under CC BY-NC-SA 4.0, so linking to the source
+> rather than mirroring the audio:
+>
+> - https://huggingface.co/datasets/intronhealth/AfriSwitchCare
+> - https://huggingface.co/datasets/intronhealth/AfriSwitch
+>
+> Exact clip IDs, per-clip transcripts and scores are in
+> `benchmark/results/summary.json`, reproducible via `make benchmark`.
+
+<sub>Why a link instead of the files: both datasets sit behind a Hugging Face
+access gate (AfriSwitchCare requires a click-through + contact info;
+AfriSwitch requires manual approval), which signals Intron wants access
+tracked per-recipient rather than mirrored elsewhere — even though the CC
+BY-NC-SA 4.0 license itself would permit sharing with attribution. Since
+Intron is both the data owner and the challenge organizer, pointing back to
+their own dataset pages is the safer and arguably more useful answer for a
+judge than a rehosted copy. If you'd rather host a small illustrative sample
+instead, say so and I'll pull a handful of clips with a CC BY-NC-SA 4.0
+attribution notice attached — just flagging that's a distinct choice from
+this one.</sub>
