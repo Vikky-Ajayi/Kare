@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Mic, Square, Volume2, VolumeX, Send, AlertTriangle, Stethoscope, User as UserIcon,
-  Wrench, FileText, Loader2, Baby,
+  Wrench, FileText, Loader2, Baby, PlayCircle, PauseCircle,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { LANGUAGES, type LangCode } from '../types';
@@ -44,8 +44,13 @@ const VoiceDoctor = () => {
   const v = useVoiceConsult(language, resumeConv);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const replayRef = useRef<HTMLAudioElement | null>(null);
+  const replayUrl = useRef<string | null>(null);
+  const [replaying, setReplaying] = useState<string | null>(null); // message id: loading or playing
+  const [replayingState, setReplayingState] = useState<'loading' | 'playing' | null>(null);
 
   useEffect(() => { if (audioRef.current) v.attachAudio(audioRef.current); }, [v.attachAudio]);
+  useEffect(() => () => { if (replayUrl.current) URL.revokeObjectURL(replayUrl.current); }, []);
   useEffect(() => { v.setMuted(muted); }, [muted]); // eslint-disable-line
   useEffect(() => { if (followupId) notifications.markClicked(followupId); }, [followupId]);
 
@@ -80,6 +85,34 @@ const VoiceDoctor = () => {
   };
 
   const submitText = () => { if (!text.trim() || busy) return; v.sendText(text.trim()); setText(''); };
+
+  // Re-synthesises on demand rather than caching audio from when the reply
+  // first arrived — that cache would only cover the current tab's session
+  // and go empty the moment a conversation is resumed from history (only
+  // text is persisted server-side). One extra Sahara call per replay is a
+  // small price for "always works, even on a message from last week".
+  const playReply = async (m: { id: string; content: string }) => {
+    if (replaying === m.id) {
+      replayRef.current?.pause();
+      setReplaying(null); setReplayingState(null);
+      return;
+    }
+    replayRef.current?.pause();
+    setReplaying(m.id); setReplayingState('loading');
+    try {
+      const blob = await voiceApi.synthesize(m.content, language);
+      if (replayUrl.current) URL.revokeObjectURL(replayUrl.current);
+      const url = URL.createObjectURL(blob);
+      replayUrl.current = url;
+      if (replayRef.current) {
+        replayRef.current.src = url;
+        setReplayingState('playing');
+        await replayRef.current.play();
+      }
+    } catch {
+      setReplaying(null); setReplayingState(null);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-8 h-[calc(100vh-64px)]">
@@ -130,7 +163,7 @@ const VoiceDoctor = () => {
             )}
             {v.messages.map((m) => (
               <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className={cn('flex gap-3', m.role === 'user' ? 'flex-row-reverse' : '')}>
+                className={cn('flex gap-3 items-end', m.role === 'user' ? 'flex-row-reverse' : '')}>
                 <div className={cn('w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center',
                   m.role === 'user' ? 'bg-primary text-primary-ink' : 'bg-mint text-ink')}>
                   {m.role === 'user' ? <UserIcon size={16} /> : <Stethoscope size={16} />}
@@ -139,6 +172,16 @@ const VoiceDoctor = () => {
                   m.role === 'user' ? 'bg-primary/25 text-ink rounded-tr-sm' : 'bg-background text-ink/90 rounded-tl-sm')}>
                   {m.content}
                 </div>
+                {m.role === 'assistant' && (
+                  <button onClick={() => playReply(m)} title="Play this reply"
+                    className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-ink/30 hover:text-primary-ink hover:bg-mint/40 transition-all">
+                    {replaying === m.id && replayingState === 'loading'
+                      ? <Loader2 size={16} className="animate-spin" />
+                      : replaying === m.id && replayingState === 'playing'
+                      ? <PauseCircle size={18} />
+                      : <PlayCircle size={18} />}
+                  </button>
+                )}
               </motion.div>
             ))}
             {v.partial && (
@@ -213,6 +256,9 @@ const VoiceDoctor = () => {
       </div>
 
       <audio ref={audioRef} className="hidden" />
+      <audio ref={replayRef} className="hidden"
+        onEnded={() => { setReplaying(null); setReplayingState(null); }}
+        onError={() => { setReplaying(null); setReplayingState(null); }} />
 
       <AnimatePresence>
         {showNotes && notes && (
