@@ -12,11 +12,19 @@ Word counts are approximate, matching the portal's stated limits.
 
 **1. A short description of the problem your app addresses** (~50 words)
 
-> Most digital health tools assume patients type in formal English. Nigerians
-> speak in code-switched sentences — mixing English with Yoruba, Hausa, Igbo
-> or Pidgin mid-sentence ("the doctor talk say my BP dey high"). Standard
-> voice assistants and ASR misparse this, dropping exactly the clinical terms
-> that matter: drug names, dosages, symptoms.
+> Nigeria accounts for over 28% of the world's maternal deaths — most
+> preventable, driven by delayed care (WHO). In a country of 500+ languages
+> where code-switching is the everyday norm, symptoms are hard to describe in
+> formal English. WHO also estimates medication errors kill roughly 1 in
+> every million people globally — worse in low-resource settings. People die
+> from delay, miscommunication, and preventable drug harm — not untreatable
+> disease.
+
+<sub>Sources: WHO/UNICEF/UNFPA *Trends in Maternal Mortality* (Nigeria's
+28.3% share of global maternal deaths); WHO *Global Burden of Preventable
+Medication-Related Harm* (medication-error mortality); academic ASR
+literature documenting code-switching's effect on speech recognition in
+Nigeria (arXiv:2604.16287).</sub>
 
 ---
 
