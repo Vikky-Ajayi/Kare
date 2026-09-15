@@ -129,10 +129,18 @@ Nigeria (arXiv:2604.16287).</sub>
 
 **Benchmark Audios Link**
 
-> The 20 conversations benchmarked are Intron's own datasets — `AfriSwitchCare`
-> (clinical, primary) and `AfriSwitch` (general-domain, secondary corpus) —
-> both gated on Hugging Face under CC BY-NC-SA 4.0, so linking to the source
-> rather than mirroring the audio:
+> Listenable samples (8 clips, ~35s, Yoruba/Hausa/Igbo/Pidgin — English
+> code-switched, with per-clip metadata: language, duration, transcript,
+> English gloss):
+>
+> https://huggingface.co/datasets/vikkyblacq/kare-codeswitch-samples
+>
+> These are original sentences we wrote and synthesized via Sahara TTS —
+> illustrative of the code-switching pattern, not excerpts from the actual
+> benchmark corpus. The 20 conversations actually scored in the benchmark
+> come from Intron's own `AfriSwitchCare` (clinical, primary) and
+> `AfriSwitch` (general-domain, secondary) datasets, gated on Hugging Face
+> under CC BY-NC-SA 4.0:
 >
 > - https://huggingface.co/datasets/intronhealth/AfriSwitchCare
 > - https://huggingface.co/datasets/intronhealth/AfriSwitch
@@ -140,14 +148,13 @@ Nigeria (arXiv:2604.16287).</sub>
 > Exact clip IDs, per-clip transcripts and scores are in
 > `benchmark/results/summary.json`, reproducible via `make benchmark`.
 
-<sub>Why a link instead of the files: both datasets sit behind a Hugging Face
-access gate (AfriSwitchCare requires a click-through + contact info;
-AfriSwitch requires manual approval), which signals Intron wants access
-tracked per-recipient rather than mirrored elsewhere — even though the CC
-BY-NC-SA 4.0 license itself would permit sharing with attribution. Since
-Intron is both the data owner and the challenge organizer, pointing back to
-their own dataset pages is the safer and arguably more useful answer for a
-judge than a rehosted copy. If you'd rather host a small illustrative sample
-instead, say so and I'll pull a handful of clips with a CC BY-NC-SA 4.0
-attribution notice attached — just flagging that's a distinct choice from
-this one.</sub>
+<sub>Why samples instead of the real clips: both benchmark datasets sit
+behind a Hugging Face access gate (AfriSwitchCare requires a click-through +
+contact info; AfriSwitch requires manual approval), which signals Intron
+wants access tracked per-recipient rather than mirrored elsewhere — even
+though the CC BY-NC-SA 4.0 license itself would permit sharing with
+attribution. Since Intron is both the data owner and the challenge
+organizer, rehosting their gated clips wasn't worth the risk. The 8 sample
+clips sidestep that entirely: original text, synthesized audio, no human
+speaker involved, so there's no consent/redistribution question at
+all.</sub>
